@@ -3,121 +3,116 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="10dp"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_marginBottom="10dp"
-    android:elevation="10dp"
-    app:cardCornerRadius="10dp">
-
-    <View
-        android:id="@+id/viewColorTag"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+    android:layout_margin="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="6dp"
+    android:backgroundTint="@color/blue">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"
-        android:layout_marginStart="5dp"
-        android:background="@android:color/white"
-        android:paddingBottom="5dp">
+        android:padding="16dp">
 
-        <RelativeLayout
-            android:layout_width="match_parent"
+        <!-- Checkbox for Task Completion -->
+        <CheckBox
+            android:id="@+id/checkboxTaskCompleted"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="5dp"
-            android:background="?android:attr/selectableItemBackground"
-            android:clickable="true"
-            android:padding="5dp">
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="8dp"
+            android:buttonTint="@android:color/white"
+            android:contentDescription="@string/mark_task_completed"
+            tools:checked="false" />
 
+        <!-- Task Title -->
+        <TextView
+            android:id="@+id/txtShowTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/checkboxTaskCompleted"
+            android:layout_marginEnd="8dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            tools:text="Task Title" />
 
+        <!-- Task Description -->
+        <TextView
+            android:id="@+id/txtShowTask"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/checkboxTaskCompleted"
+            android:layout_below="@id/txtShowTitle"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            tools:text="Task Description" />
 
-            <TextView
-                android:id="@+id/txtShowTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_marginEnd="5dp"
-                android:layout_toStartOf="@+id/txtShowCategory"
-                android:ellipsize="end"
-                android:maxLines="1"
-                tools:text="Task Title"
-                android:textColor="#303030"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+        <!-- Priority Dot -->
+        <View
+            android:id="@+id/priorityDot"
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="48dp"
+            android:background="@drawable/dot_priority" />
 
+        <!-- Task Date -->
+        <TextView
+            android:id="@+id/txtShowDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/checkboxTaskCompleted"
+            android:layout_below="@id/txtShowTask"
+            android:layout_marginTop="8dp"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            tools:text="11 Jan 2025" />
 
-            <TextView
-                android:id="@+id/txtShowTask"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/txtShowTitle"
-                android:layout_marginTop="4dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                tools:text="Task Subtitle"
-                android:textColor="@android:color/black"
-                android:textSize="16sp" />
+        <!-- Task Time -->
+        <TextView
+            android:id="@+id/txtShowTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@id/txtShowTask"
+            android:layout_marginEnd="48dp"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            tools:text="10:45 AM" />
 
-            <TextView
-                android:id="@+id/txtShowCategory"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:maxWidth="80dp"
-                tools:text="Category"
-                android:textColor="@color/litherGray"
-                android:textSize="12sp" />
+        <!-- Edit Button -->
+        <ImageButton
+            android:id="@+id/btnEdit"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/ic_edit"
+            android:contentDescription="@string/edit_task"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="@android:color/white" />
 
-            <TextView
-                android:id="@+id/textDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/txtShowTask"
-                android:layout_marginTop="15dp"
-                android:text="Date"
-                android:textColor="@color/litherGray"
-                android:textSize="12sp"
-                android:visibility="visible" />
-
-            <TextView
-                android:id="@+id/txtShowDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/textDate"
-                tools:text="22-12-2017"
-                android:textColor="@android:color/black"
-                android:visibility="visible" />
-
-            <TextView
-                android:id="@+id/textTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_below="@+id/txtShowTask"
-                android:layout_marginTop="15dp"
-                android:text="Time"
-                android:textColor="@color/litherGray"
-                android:textSize="12sp"
-                android:visibility="visible" />
-
-            <TextView
-                android:id="@+id/txtShowTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_below="@+id/textTime"
-                tools:text="22:12 AM"
-                android:textColor="@android:color/black"
-                android:visibility="visible" />
-
-        </RelativeLayout>
+        <!-- Delete Button (Text-Based) -->
+        <Button
+            android:id="@+id/btnDelete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="8dp"
+            android:text="@string/delete_task"
+            android:textColor="@android:color/white"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:visibility="gone" /> <!-- Initially hidden -->
 
     </RelativeLayout>
-
 </com.google.android.material.card.MaterialCardView>

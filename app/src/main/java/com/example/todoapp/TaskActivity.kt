@@ -2,154 +2,268 @@ package com.example.todoapp
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
-import android.widget.DatePicker
-import android.widget.TimePicker
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.room.Room
-import kotlinx.android.synthetic.main.activity_task.*
+import androidx.lifecycle.lifecycleScope
+import com.example.todoapp.databinding.ActivityTaskBinding
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
-const val DB_NAME = "todo.db"
-
 class TaskActivity : AppCompatActivity(), View.OnClickListener {
 
-    lateinit var myCalendar: Calendar
-
-    lateinit var dateSetListener: DatePickerDialog.OnDateSetListener
-    lateinit var timeSetListener: TimePickerDialog.OnTimeSetListener
-
-    var finalDate = 0L
-    var finalTime = 0L
+    private lateinit var binding: ActivityTaskBinding
+    private lateinit var myCalendar: Calendar
+    private lateinit var dateSetListener: DatePickerDialog.OnDateSetListener
+    private lateinit var timeSetListener: TimePickerDialog.OnTimeSetListener
 
 
-    private val labels = arrayListOf("Personal", "Business", "Insurance", "Shopping", "Banking")
+    private var finalDate = 0L
+    private var finalTime = 0L
 
+    private val priorities = listOf("Low", "Medium", "High") // Priority options
 
-    val db by lazy {
+    private var userId: Int = -1 // User ID to associate tasks with the logged-in user
+    private var taskId: Long = -1L // Task ID for editing an existing task
+
+    private val db by lazy {
         AppDatabase.getDatabase(this)
     }
 
+    // Define the ActivityResultLauncher to handle task result from TaskActivity
+    private val startActivityForResultLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                setResult(RESULT_OK)  // Indicating that the task has been added or updated
+                finish()
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_task)
+        binding = ActivityTaskBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        dateEdt.setOnClickListener(this)
-        timeEdt.setOnClickListener(this)
-        saveBtn.setOnClickListener(this)
+        // Retrieve the userId and taskId passed from the previous activity
+        userId = intent.getIntExtra("USER_ID", -1)
+        taskId = intent.getLongExtra("TASK_ID", -1L)
 
+        if (userId == -1) {
+            Toast.makeText(this, "Error: User ID not found", Toast.LENGTH_SHORT).show()
+            finish() // Exit the activity if userId is invalid
+        }
 
-        setUpSpinner()
+        // If taskId is valid, populate the fields with the task data
+        if (taskId != -1L) {
+            populateTaskData()
+        }
+
+        binding.dateEdt.setOnClickListener(this)
+        binding.timeEdt.setOnClickListener(this)
+        binding.saveBtn.setOnClickListener(this)
+
+        setUpPrioritySpinner()
     }
 
-    private fun setUpSpinner() {
-        val adapter =
-            ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, labels)
-
-        labels.sort()
-
-        spinnerCategory.adapter = adapter
+    private fun setUpPrioritySpinner() {
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, priorities)
+        binding.spinnerPriority.adapter = adapter
     }
 
     override fun onClick(v: View) {
         when (v.id) {
-            R.id.dateEdt -> {
-                setListener()
-            }
-            R.id.timeEdt -> {
-                setTimeListener()
-            }
+            R.id.dateEdt -> setDateListener()
+            R.id.timeEdt -> setTimeListener()
             R.id.saveBtn -> {
-                saveTodo()
+                if (taskId != -1L) {
+                    updateTask()
+                } else {
+                    saveTodo()
+                }
             }
         }
+    }
 
+    private fun populateTaskData() {
+        val title = intent.getStringExtra("TITLE") ?: "" // Default empty if null
+        val description = intent.getStringExtra("DESCRIPTION") ?: "" // Default empty if null
+        val priority = intent.getStringExtra("PRIORITY") ?: "Low" // Default to "Low" if null
+        val date = intent.getLongExtra("DATE", 0L)
+        val time = intent.getLongExtra("TIME", 0L)
+
+        binding.titleInpLay.editText?.setText(title)
+        binding.taskInpLay.editText?.setText(description)
+
+        val priorityIndex = priorities.indexOf(priority)
+        if (priorityIndex != -1) {
+            binding.spinnerPriority.setSelection(priorityIndex)
+        }
+
+        binding.dateEdt.setText(if (date == 0L) "" else formatDate(date))
+        binding.timeEdt.setText(if (time == 0L) "" else formatTime(time))
+
+        finalDate = date
+        finalTime = time
+
+        binding.saveBtn.text = getString(R.string.update_task)
+    }
+
+    private fun formatDate(date: Long): String {
+        val myFormat = "EEE, d MMM yyyy"
+        val sdf = SimpleDateFormat(myFormat, Locale.getDefault())
+        return sdf.format(Date(date))
+    }
+
+    private fun formatTime(time: Long): String {
+        val myFormat = "h:mm a"
+        val sdf = SimpleDateFormat(myFormat, Locale.getDefault())
+        return sdf.format(Date(time))
     }
 
     private fun saveTodo() {
-        val category = spinnerCategory.selectedItem.toString()
-        val title = titleInpLay.editText?.text.toString()
-        val description = taskInpLay.editText?.text.toString()
+        val priority = binding.spinnerPriority.selectedItem.toString()
+        val title = binding.titleInpLay.editText?.text.toString()
+        val description = binding.taskInpLay.editText?.text.toString()
 
-        GlobalScope.launch(Dispatchers.Main) {
-            val id = withContext(Dispatchers.IO) {
-                return@withContext db.todoDao().insertTask(
-                    TodoModel(
-                        title,
-                        description,
-                        category,
-                        finalDate,
-                        finalTime
-                    )
-                )
-            }
-            finish()
+        if (title.isEmpty() || description.isEmpty()) {
+            Toast.makeText(this, "Title and Description cannot be empty", Toast.LENGTH_SHORT).show()
+            return
         }
 
+        val reminderDate = if (binding.dateEdt.text.isNullOrEmpty()) 0L else finalDate
+        val reminderTime = if (binding.timeEdt.text.isNullOrEmpty()) 0L else finalTime
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            // Insert the task into the database
+            db.todoDao().insertTask(
+                TodoModel(
+                    title = title,
+                    description = description,
+                    priority = priority,
+                    date = reminderDate,
+                    time = reminderTime,
+                    isFinished = 0,
+                    userId = userId,
+                )
+            )
+
+            // Send the result back to MainActivity
+            withContext(Dispatchers.Main) {
+                setResult(RESULT_OK)  // Indicating that the task has been added
+                finish()  // Close the current activity and return to MainActivity
+            }
+        }
+    }
+
+    private fun updateTask() {
+        val priority = binding.spinnerPriority.selectedItem.toString()
+        val title = binding.titleInpLay.editText?.text.toString()
+        val description = binding.taskInpLay.editText?.text.toString()
+
+        if (title.isEmpty() || description.isEmpty()) {
+            Toast.makeText(this, "Title and Description cannot be empty", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val reminderDate = if (binding.dateEdt.text.isNullOrEmpty()) 0L else finalDate
+        val reminderTime = if (binding.timeEdt.text.isNullOrEmpty()) 0L else finalTime
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            // Update the task in the database
+            db.todoDao().updateTask(
+                TodoModel(
+                    id = taskId,
+                    title = title,
+                    description = description,
+                    priority = priority,
+                    date = reminderDate,
+                    time = reminderTime,
+                    isFinished = 0,
+                    userId = userId,
+                )
+            )
+
+            // Send the result back to MainActivity to refresh the task list
+            withContext(Dispatchers.Main) {
+                setResult(RESULT_OK)  // Indicating that the task has been updated
+                finish()  // Close the current activity and return to MainActivity
+            }
+        }
+    }
+
+    private fun openEditTask(task: TodoModel) {
+        val intent = Intent(this, TaskActivity::class.java).apply {
+            putExtra("USER_ID", userId)
+            putExtra("TASK_ID", task.id)
+            putExtra("TITLE", task.title)
+            putExtra("DESCRIPTION", task.description)
+            putExtra("PRIORITY", task.priority)
+            putExtra("DATE", task.date)
+            putExtra("TIME", task.time)
+        }
+        startActivityForResultLauncher.launch(intent)
     }
 
     private fun setTimeListener() {
         myCalendar = Calendar.getInstance()
 
-        timeSetListener =
-            TimePickerDialog.OnTimeSetListener() { _: TimePicker, hourOfDay: Int, min: Int ->
-                myCalendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
-                myCalendar.set(Calendar.MINUTE, min)
-                updateTime()
-            }
+        timeSetListener = TimePickerDialog.OnTimeSetListener { _, hourOfDay, minute ->
+            myCalendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
+            myCalendar.set(Calendar.MINUTE, minute)
+            updateTime()
+        }
 
-        val timePickerDialog = TimePickerDialog(
-            this, timeSetListener, myCalendar.get(Calendar.HOUR_OF_DAY),
-            myCalendar.get(Calendar.MINUTE), false
-        )
-        timePickerDialog.show()
+        TimePickerDialog(
+            this,
+            timeSetListener,
+            myCalendar.get(Calendar.HOUR_OF_DAY),
+            myCalendar.get(Calendar.MINUTE),
+            false
+        ).show()
     }
 
     private fun updateTime() {
-        //Mon, 5 Jan 2020
-        val myformat = "h:mm a"
-        val sdf = SimpleDateFormat(myformat)
+        val myFormat = "h:mm a"
+        val sdf = SimpleDateFormat(myFormat, Locale.getDefault())
         finalTime = myCalendar.time.time
-        timeEdt.setText(sdf.format(myCalendar.time))
-
+        binding.timeEdt.setText(sdf.format(myCalendar.time))
     }
 
-    private fun setListener() {
+    private fun setDateListener() {
         myCalendar = Calendar.getInstance()
 
-        dateSetListener =
-            DatePickerDialog.OnDateSetListener { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
-                myCalendar.set(Calendar.YEAR, year)
-                myCalendar.set(Calendar.MONTH, month)
-                myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
-                updateDate()
+        dateSetListener = DatePickerDialog.OnDateSetListener { _, year, month, dayOfMonth ->
+            myCalendar.set(Calendar.YEAR, year)
+            myCalendar.set(Calendar.MONTH, month)
+            myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+            updateDate()
+        }
 
-            }
-
-        val datePickerDialog = DatePickerDialog(
-            this, dateSetListener, myCalendar.get(Calendar.YEAR),
-            myCalendar.get(Calendar.MONTH), myCalendar.get(Calendar.DAY_OF_MONTH)
-        )
-        datePickerDialog.datePicker.minDate = System.currentTimeMillis()
-        datePickerDialog.show()
+        DatePickerDialog(
+            this,
+            dateSetListener,
+            myCalendar.get(Calendar.YEAR),
+            myCalendar.get(Calendar.MONTH),
+            myCalendar.get(Calendar.DAY_OF_MONTH)
+        ).apply {
+            datePicker.minDate = System.currentTimeMillis()
+            show()
+        }
     }
 
     private fun updateDate() {
-        //Mon, 5 Jan 2020
-        val myformat = "EEE, d MMM yyyy"
-        val sdf = SimpleDateFormat(myformat)
+        val myFormat = "EEE, d MMM yyyy"
+        val sdf = SimpleDateFormat(myFormat, Locale.getDefault())
         finalDate = myCalendar.time.time
-        dateEdt.setText(sdf.format(myCalendar.time))
+        binding.dateEdt.setText(sdf.format(myCalendar.time))
 
-        timeInptLay.visibility = View.VISIBLE
-
+        binding.timeInptLay.visibility = View.VISIBLE
     }
-
 }

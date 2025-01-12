@@ -3,71 +3,110 @@ package com.example.todoapp
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.android.synthetic.main.activity_task.*
-import kotlinx.android.synthetic.main.item_todo.view.*
+import com.example.todoapp.databinding.ItemTodoBinding
 import java.text.SimpleDateFormat
 import java.util.*
 
-// first create adapter class. This inherits recycler view. Recycler view now requires view holder
-class TodoAdapter(val list: List<TodoModel>) : RecyclerView.Adapter<TodoAdapter.TodoViewHolder>() {
+class TodoAdapter(
+    private val list: List<TodoModel>,
+    private val onTaskClick: (TodoModel) -> Unit,
+    private val onEditClick: (TodoModel) -> Unit,
+    private val onTaskCompleted: (TodoModel, Boolean) -> Unit,
+    private val onDeleteClick: (TodoModel) -> Unit, // Lambda for delete button clicks
+    private val isDeleteMode: Boolean, // Pass delete mode from activity
+    private val selectedTasks: MutableList<TodoModel> // Track selected tasks for deletion
+) : RecyclerView.Adapter<TodoAdapter.TodoViewHolder>() {
 
-    // 3 functions of the view holder
-    // 1st func
-    // In this Layout inflatter is called which converts view in such a form that adapter can consume it
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TodoViewHolder {
-        return TodoViewHolder(
-            LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_todo, parent, false)
-        )
-    }
+    class TodoViewHolder(
+        private val binding: ItemTodoBinding,
+        private val onTaskClick: (TodoModel) -> Unit,
+        private val onEditClick: (TodoModel) -> Unit,
+        private val onTaskCompleted: (TodoModel, Boolean) -> Unit,
+        private val onDeleteClick: (TodoModel) -> Unit,
+        private val isDeleteMode: Boolean,
+        private val selectedTasks: MutableList<TodoModel>
+    ) : RecyclerView.ViewHolder(binding.root) {
 
-
-    override fun getItemCount() = list.size
-    
-    // 2nd func
-    // this will set data in each card
-    override fun onBindViewHolder(holder: TodoViewHolder, position: Int) {
-        holder.bind(list[position]) // we are passing the object of the list that we made in the ToDoModel.kt
-    }
-
-    // 3rd func
-    override fun getItemId(position: Int): Long {
-        return list[position].id
-    }
-
-    // view holder is present inside the recycler view
-    class TodoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(todoModel: TodoModel) {
-            with(itemView) {
-                val colors = resources.getIntArray(R.array.random_color)
-                val randomColor = colors[Random().nextInt(colors.size)]
-                viewColorTag.setBackgroundColor(randomColor)
-                txtShowTitle.text = todoModel.title
-                txtShowTask.text = todoModel.description
-                txtShowCategory.text = todoModel.category
-                updateTime(todoModel.time)
-                updateDate(todoModel.date)
+            val context = binding.root.context
 
+            // Set priority dot color based on priority level
+            val priorityColor = when (todoModel.priority) {
+                "Low" -> R.color.priority_low
+                "Medium" -> R.color.priority_medium
+                "High" -> R.color.priority_high
+                else -> R.color.litherGray // Default color
+            }
+            binding.priorityDot.setBackgroundColor(ContextCompat.getColor(context, priorityColor))
+
+            // Set text values for task details
+            binding.txtShowTitle.text = todoModel.title
+            binding.txtShowTask.text = todoModel.description
+
+            // Display date if set, otherwise hide
+            if (todoModel.date != 0L) {
+                binding.txtShowDate.visibility = View.VISIBLE
+                binding.txtShowDate.text = formatDate(todoModel.date)
+            } else {
+                binding.txtShowDate.visibility = View.GONE
+            }
+
+            // Display time if set, otherwise hide
+            if (todoModel.time != 0L) {
+                binding.txtShowTime.visibility = View.VISIBLE
+                binding.txtShowTime.text = formatTime(todoModel.time)
+            } else {
+                binding.txtShowTime.visibility = View.GONE
+            }
+
+            // Show or hide delete button based on delete mode
+            binding.btnDelete.visibility = if (isDeleteMode) View.VISIBLE else View.GONE
+            binding.checkboxTaskCompleted.visibility = if (isDeleteMode) View.VISIBLE else View.GONE
+
+            // Handle task selection for deletion
+            binding.checkboxTaskCompleted.isChecked = selectedTasks.contains(todoModel)
+
+            binding.checkboxTaskCompleted.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    selectedTasks.add(todoModel)
+                } else {
+                    selectedTasks.remove(todoModel)
+                }
+            }
+
+            // Set click listeners for task click and edit click
+            binding.root.setOnClickListener {
+                onTaskClick(todoModel)
+            }
+
+            binding.btnEdit.setOnClickListener {
+                onEditClick(todoModel)
             }
         }
-        private fun updateTime(time: Long) {
-            //Mon, 5 Jan 2020
-            val myformat = "h:mm a"
-            val sdf = SimpleDateFormat(myformat)
-            itemView.txtShowTime.text = sdf.format(Date(time))
 
+        private fun formatDate(date: Long): String {
+            val myFormat = "EEE, d MMM yyyy"
+            val sdf = SimpleDateFormat(myFormat, Locale.getDefault())
+            return sdf.format(Date(date))
         }
 
-        private fun updateDate(time: Long) {
-            //Mon, 5 Jan 2020
-            val myformat = "EEE, d MMM yyyy"
-            val sdf = SimpleDateFormat(myformat)
-            itemView.txtShowDate.text = sdf.format(Date(time))
-
+        private fun formatTime(time: Long): String {
+            val myFormat = "h:mm a"
+            val sdf = SimpleDateFormat(myFormat, Locale.getDefault())
+            return sdf.format(Date(time))
         }
     }
 
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TodoViewHolder {
+        val binding = ItemTodoBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return TodoViewHolder(binding, onTaskClick, onEditClick, onTaskCompleted, onDeleteClick, isDeleteMode, selectedTasks)
+    }
+
+    override fun onBindViewHolder(holder: TodoViewHolder, position: Int) {
+        holder.bind(list[position]) // Bind the data to the ViewHolder
+    }
+
+    override fun getItemCount() = list.size
 }
-
-

@@ -1,3 +1,47 @@
 <resources>
-    <string name="app_name">TodoApp</string>
+    <!-- App Name -->
+    <string name="app_name">ToDay List</string>
+
+    <!-- User Input Hints -->
+    <string name="username_hint">Username</string>
+    <string name="password_hint">Password</string>
+
+    <!-- Button Text -->
+    <string name="signup_button_text">Sign Up</string>
+    <string name="login_button_text">Login</string>
+
+    <!-- Redirect Text -->
+    <string name="signup_redirect_text">You do not have an account? Sign up here</string>
+
+    <!-- Task Messages -->
+    <string name="update_task">Update Task</string>
+    <string name="task_added_successfully">Task added successfully</string>
+    <string name="task_updated_successfully">Task updated successfully</string>
+
+    <!-- Edit Button -->
+    <string name="edit_task">Edit Task</string>
+
+    <string name="new_task">New Task</string>
+    <string name="task_title">Task Title</string>
+    <string name="enter_task_title">Enter Task title</string>
+    <string name="what_to_be_done">What is to be done?</string>
+    <string name="enter_your_task">Enter your Task</string>
+    <string name="set_reminder_date_optional">Set reminder date and time (optional)</string>
+    <string name="set_date">Set Date</string>
+    <string name="set_time">Set Time</string>
+    <string name="save_task">Save Task</string>
+
+    <string name="home">Home</string>
+    <string name="calendar">Calendar</string>
+    <string name="search">Search</string>
+    <string name="more">More</string>
+
+    <!-- Delete Task String -->
+    <string name="delete_task">Delete Task</string>
+    <string name="delete_tasks">Delete Tasks</string>
+
+
+
+    <!-- Missing String Resource -->
+    <string name="mark_task_completed">Mark task as completed</string>
 </resources>

@@ -2,13 +2,30 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item android:id="@+id/history"
+    <item
+        android:id="@+id/history"
         android:title="History"
-        app:showAsAction="never"/>
+        app:showAsAction="never" />
 
-    <item android:id="@+id/search"
+    <item
+        android:id="@+id/search"
         android:title="Search"
         app:actionViewClass="androidx.appcompat.widget.SearchView"
-        app:showAsAction="ifRoom|collapseActionView"/>
+        app:showAsAction="ifRoom|collapseActionView" />
 
+    <!-- Delete Menu Item -->
+    <item
+        android:id="@+id/delete"
+        android:title="Delete"
+        app:showAsAction="never" />
+
+    <!-- Logout Menu Item -->
+    <item
+        android:id="@+id/logout"
+        android:title="Logout"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/nav_delete"
+        android:title="Delete Tasks"
+        app:showAsAction="never" />
 </menu>
