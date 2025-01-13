@@ -22,7 +22,14 @@ class DeletedTaskAdapter(
         fun bind(task: TodoModel) {
             binding.txtDeletedTitle.text = task.title
             binding.txtDeletedDescription.text = task.description
-            binding.txtDeletedDateTime.text = "Deleted on: ${formatDate(task.date)}"
+
+            // Displaying the date the task was deleted
+            if (task.date != 0L) {
+                binding.txtDeletedDateTime.text = "Deleted on: ${formatDate(task.date)}"
+                binding.txtDeletedDateTime.visibility = ViewGroup.VISIBLE
+            } else {
+                binding.txtDeletedDateTime.visibility = ViewGroup.GONE
+            }
 
             // Restore button
             binding.btnRestoreTask.setOnClickListener {

@@ -61,13 +61,11 @@ class TodoAdapter(
                 binding.txtShowTime.visibility = View.GONE
             }
 
-            // Show or hide delete button based on delete mode
-            binding.btnDelete.visibility = if (isDeleteMode) View.VISIBLE else View.GONE
+            // Show or hide delete checkbox based on delete mode
             binding.checkboxTaskCompleted.visibility = if (isDeleteMode) View.VISIBLE else View.GONE
 
             // Handle task selection for deletion
             binding.checkboxTaskCompleted.isChecked = selectedTasks.contains(todoModel)
-
             binding.checkboxTaskCompleted.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {
                     selectedTasks.add(todoModel)
@@ -76,13 +74,19 @@ class TodoAdapter(
                 }
             }
 
-            // Set click listeners for task click and edit click
+            // Show delete button only if not in delete mode (optional)
+            binding.btnDelete.visibility = if (isDeleteMode) View.GONE else View.VISIBLE
+            binding.btnDelete.setOnClickListener {
+                onDeleteClick(todoModel) // Call delete lambda
+            }
+
+            // Set click listeners for task and edit
             binding.root.setOnClickListener {
-                onTaskClick(todoModel)
+                onTaskClick(todoModel) // Call task click lambda
             }
 
             binding.btnEdit.setOnClickListener {
-                onEditClick(todoModel)
+                onEditClick(todoModel) // Call edit click lambda
             }
         }
 

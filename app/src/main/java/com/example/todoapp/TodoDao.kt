@@ -53,4 +53,8 @@ interface TodoDao {
     // Update task completion state
     @Query("UPDATE TodoModel SET completed = :isCompleted WHERE id = :taskId")
     suspend fun updateTaskCompletion(taskId: Long, isCompleted: Boolean)
+
+    @Query("UPDATE TodoModel SET isDeleted = 0 WHERE id = :uid")
+    suspend fun restoreDeletedTask(uid: Long)
+
 }

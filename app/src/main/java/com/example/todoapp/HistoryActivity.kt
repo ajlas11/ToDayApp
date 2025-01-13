@@ -16,6 +16,8 @@ class HistoryActivity : AppCompatActivity() {
     private val deletedTasksList = arrayListOf<TodoModel>()
     private val selectedTasks = mutableListOf<TodoModel>() // Track selected tasks for deletion
     private var isDeleteMode = false // Flag to toggle deletion mode
+    private lateinit var deletedTaskAdapter: DeletedTaskAdapter
+
 
     private val db by lazy {
         AppDatabase.getDatabase(applicationContext)
@@ -32,6 +34,12 @@ class HistoryActivity : AppCompatActivity() {
         binding.historyToolbar.setNavigationOnClickListener {
             onBackPressedDispatcher.onBackPressed()
         }
+        deletedTaskAdapter = DeletedTaskAdapter(
+            tasks = deletedTasksList,
+            onRestoreClick = { task -> restoreTask(task) },
+            onPermanentlyDeleteClick = { task -> permanentlyDeleteTask(task) }
+        )
+
 
         // Set up the RecyclerView
         setupRecyclerView()
@@ -103,6 +111,28 @@ class HistoryActivity : AppCompatActivity() {
             }
         }
     }
+    private fun restoreTask(task: TodoModel) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            db.todoDao().restoreDeletedTask(task.id)
+            deletedTasksList.remove(task)
+            withContext(Dispatchers.Main) {
+                deletedTaskAdapter.notifyDataSetChanged()
+                Toast.makeText(this@HistoryActivity, "Task restored", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun permanentlyDeleteTask(task: TodoModel) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            db.todoDao().deleteTask(task.id)
+            deletedTasksList.remove(task)
+            withContext(Dispatchers.Main) {
+                deletedTaskAdapter.notifyDataSetChanged()
+                Toast.makeText(this@HistoryActivity, "Task permanently deleted", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
 
     private fun deleteSelectedTasks() {
         // Perform batch deletion for selected tasks

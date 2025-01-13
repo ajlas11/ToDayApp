@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -61,7 +62,7 @@
             android:layout_height="12dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:layout_marginEnd="48dp"
+            android:layout_marginEnd="90dp"
             android:background="@drawable/dot_priority" />
 
         <!-- Task Date -->
@@ -83,7 +84,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_below="@id/txtShowTask"
-            android:layout_marginEnd="48dp"
+            android:layout_marginEnd="90dp"
             android:textColor="@android:color/white"
             android:textSize="12sp"
             tools:text="10:45 AM" />
@@ -91,28 +92,26 @@
         <!-- Edit Button -->
         <ImageButton
             android:id="@+id/btnEdit"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:layout_marginEnd="8dp"
+            android:layout_marginEnd="48dp"
             android:src="@drawable/ic_edit"
             android:contentDescription="@string/edit_task"
             android:background="?attr/selectableItemBackgroundBorderless"
             app:tint="@android:color/white" />
 
-        <!-- Delete Button (Text-Based) -->
-        <Button
+        <!-- Delete Button -->
+        <ImageButton
             android:id="@+id/btnDelete"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
             android:layout_marginEnd="8dp"
-            android:text="@string/delete_task"
-            android:textColor="@android:color/white"
+            android:src="@drawable/ic_delete"
+            android:contentDescription="@string/delete_task"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:visibility="gone" /> <!-- Initially hidden -->
+            app:tint="@android:color/white" />
 
     </RelativeLayout>
 </com.google.android.material.card.MaterialCardView>

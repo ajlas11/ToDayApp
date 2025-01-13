@@ -301,22 +301,29 @@ class MainActivity : AppCompatActivity() {
     private fun toggleDeleteMode() {
         isDeleteMode = !isDeleteMode
         binding.deleteButton.visibility = if (isDeleteMode) View.VISIBLE else View.GONE
+        binding.todoRv.adapter?.notifyDataSetChanged() // Refresh RecyclerView to show checkboxes
+
+        binding.deleteButton.setOnClickListener {
+            deleteSelectedTasks() // Call here
+        }
     }
+
 
     private fun deleteSelectedTasks() {
         lifecycleScope.launch(Dispatchers.IO) {
             selectedTasks.forEach { task ->
-                db.todoDao().deleteTask(task.id)
+                db.todoDao().markTaskAsDeleted(task.id) // Mark task as deleted in the database
             }
 
-            list.removeAll(selectedTasks)
-            filteredList.removeAll(selectedTasks)
-
-            // Update RecyclerView after deleting tasks
-            runOnUiThread {
+            withContext(Dispatchers.Main) {
+                list.removeAll(selectedTasks)
+                filteredList.removeAll(selectedTasks)
+                selectedTasks.clear()
                 binding.todoRv.adapter?.notifyDataSetChanged()
                 Toast.makeText(this@MainActivity, "Tasks deleted successfully", Toast.LENGTH_SHORT).show()
+                toggleDeleteMode() // Exit delete mode
             }
         }
     }
+
 }
