@@ -59,4 +59,5 @@ interface TodoDao {
     @Query("UPDATE TodoModel SET isDeleted = 0 WHERE id = :uid")
     suspend fun restoreDeletedTask(uid: Long)
 
+
 }

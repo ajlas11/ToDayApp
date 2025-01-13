@@ -5,7 +5,9 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.appcompat.widget.SearchView
 import com.example.todoapp.databinding.ActivityMainBinding
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +19,9 @@ import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import kotlinx.coroutines.withContext
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.util.Calendar
 
 class MainActivity : AppCompatActivity() {
@@ -51,6 +56,7 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.toolbar)
         setupRecyclerView()
+        setupSwipeToComplete() // Add swipe-to-complete functionality
         setupBottomNavigation()
 
         // Fetch all tasks for the user
@@ -77,7 +83,79 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Start TaskActivity for result using the new launcher
+    private fun setupSwipeToComplete() {
+        val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                // Not used
+                return false
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.adapterPosition
+                val task = filteredList[position]
+
+                // Mark task as completed
+                lifecycleScope.launch(Dispatchers.IO) {
+                    db.todoDao().updateTaskCompletion(task.id, true)
+
+                    withContext(Dispatchers.Main) {
+                        // Remove the task from the list if needed
+                        filteredList.removeAt(position)
+                        binding.todoRv.adapter?.notifyItemRemoved(position)
+
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Task '${task.title}' marked as completed!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        // Fetch and display a joke
+                        fetchJoke()
+                    }
+                }
+            }
+        }
+
+        // Attach the ItemTouchHelper to the RecyclerView
+        val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
+        itemTouchHelper.attachToRecyclerView(binding.todoRv)
+    }
+
+
+    private fun fetchJoke() {
+        RetrofitInstance.api.getRandomJoke().enqueue(object : Callback<JokeResponse> {
+            override fun onResponse(call: Call<JokeResponse>, response: Response<JokeResponse>) {
+                if (response.isSuccessful) {
+                    val jokeResponse = response.body()
+                    val joke = if (jokeResponse?.joke != null) {
+                        jokeResponse.joke // Single-line joke
+                    } else {
+                        "${jokeResponse?.setup}\n\n${jokeResponse?.delivery}" // Two-part joke
+                    }
+
+                    // Show the joke in a dialog
+                    MaterialAlertDialogBuilder(this@MainActivity)
+                        .setTitle("Here's a Joke for You")
+                        .setMessage(joke)
+                        .setPositiveButton("Close") { dialog, _ ->
+                            dialog.dismiss()
+                        }
+                        .show()
+                } else {
+                    Toast.makeText(this@MainActivity, "Failed to fetch joke", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<JokeResponse>, t: Throwable) {
+                Toast.makeText(this@MainActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
     private fun openNewTask() {
         val intent = Intent(this, TaskActivity::class.java)
         intent.putExtra("USER_ID", userId)
@@ -130,7 +208,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Open TaskActivity in edit mode with selected task details
     private fun openEditTask(task: TodoModel) {
         val intent = Intent(this, TaskActivity::class.java).apply {
             putExtra("USER_ID", userId)
@@ -148,20 +225,17 @@ class MainActivity : AppCompatActivity() {
         binding.progressBar.visibility = View.VISIBLE // Show ProgressBar
 
         lifecycleScope.launch(Dispatchers.IO) {
-            // Query the database in the background (on IO thread)
             val taskList = db.todoDao().getTasksForUser(userId)
 
-            // Log the retrieved tasks
             Log.d("DatabaseCheck", "Fetched tasks for user: $taskList")
 
-            // Switch to the main thread to update the UI
             withContext(Dispatchers.Main) {
                 list.clear()
                 list.addAll(taskList)
                 filteredList.clear()
                 filteredList.addAll(taskList)
                 binding.todoRv.adapter?.notifyDataSetChanged()
-                binding.progressBar.visibility = View.GONE // Hide ProgressBar once tasks are fetched
+                binding.progressBar.visibility = View.GONE
             }
         }
     }
@@ -175,7 +249,7 @@ class MainActivity : AppCompatActivity() {
                 list.addAll(taskList)
                 filteredList.clear()
                 filteredList.addAll(taskList)
-                binding.todoRv.adapter?.notifyDataSetChanged()  // Notify adapter to update RecyclerView
+                binding.todoRv.adapter?.notifyDataSetChanged()
             }
         }
     }
@@ -211,10 +285,6 @@ class MainActivity : AppCompatActivity() {
     private fun setupBottomNavigation() {
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.nav_home -> {
-                    binding.searchBar.visibility = View.GONE
-                    true
-                }
 
                 R.id.nav_calendar -> {
                     binding.searchBar.visibility = View.GONE
@@ -230,6 +300,10 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_more -> {
                     binding.searchBar.visibility = View.GONE
                     showMoreMenu()
+                    true
+                }
+                R.id.nav_joke -> {
+                    fetchJoke() // Fetch and display a joke
                     true
                 }
 
