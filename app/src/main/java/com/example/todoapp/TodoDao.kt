@@ -28,9 +28,11 @@ interface TodoDao {
     @Query("UPDATE TodoModel SET isDeleted = 1 WHERE id = :uid")
     suspend fun markTaskAsDeleted(uid: Long)
 
-    // Get deleted tasks for a specific user
+
     @Query("SELECT * FROM TodoModel WHERE userId = :userId AND isDeleted = 1")
     suspend fun getDeletedTasks(userId: Int): List<TodoModel>
+
+
 
     // Permanently delete a task
     @Query("DELETE FROM TodoModel WHERE id = :uid")

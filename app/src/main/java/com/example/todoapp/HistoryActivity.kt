@@ -1,6 +1,7 @@
 package com.example.todoapp
 
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.todoapp.databinding.ActivityHistoryBinding
@@ -13,11 +14,9 @@ import kotlinx.coroutines.withContext
 class HistoryActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHistoryBinding
-    private val deletedTasksList = arrayListOf<TodoModel>()
-    private val selectedTasks = mutableListOf<TodoModel>() // Track selected tasks for deletion
-    private var isDeleteMode = false // Flag to toggle deletion mode
+    private val deletedTasksList = arrayListOf<TodoModel>() // List of deleted tasks
     private lateinit var deletedTaskAdapter: DeletedTaskAdapter
-
+    private var userId: Int = -1 // Default to invalid user ID
 
     private val db by lazy {
         AppDatabase.getDatabase(applicationContext)
@@ -28,124 +27,107 @@ class HistoryActivity : AppCompatActivity() {
         binding = ActivityHistoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Retrieve userId from the intent
+        userId = intent.getIntExtra("USER_ID", -1)
+        if (userId == -1) {
+            Toast.makeText(this, "Invalid user ID", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+
         // Set up the toolbar
+        setupToolbar()
+
+        // Set up the RecyclerView
+        setupRecyclerView()
+
+        // Fetch deleted tasks
+        fetchDeletedTasks()
+    }
+
+    private fun setupToolbar() {
         setSupportActionBar(binding.historyToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.historyToolbar.setNavigationOnClickListener {
             onBackPressedDispatcher.onBackPressed()
         }
+    }
+
+    private fun setupRecyclerView() {
         deletedTaskAdapter = DeletedTaskAdapter(
             tasks = deletedTasksList,
             onRestoreClick = { task -> restoreTask(task) },
             onPermanentlyDeleteClick = { task -> permanentlyDeleteTask(task) }
         )
 
-
-        // Set up the RecyclerView
-        setupRecyclerView()
-
-        // Fetch deleted tasks from the database
-        fetchDeletedTasks()
-
-        // Toggle delete mode
-        binding.deleteButton.setOnClickListener {
-            toggleDeleteMode()
-        }
-    }
-
-    private fun setupRecyclerView() {
         binding.recyclerViewDeletedTasks.apply {
             layoutManager = LinearLayoutManager(this@HistoryActivity)
-            adapter = TodoAdapter(
-                deletedTasksList,
-                onTaskClick = { /* No action needed */ },
-                onEditClick = { /* No action needed */ },
-                onTaskCompleted = { task, isCompleted -> /* No action needed */ },
-                onDeleteClick = { task ->
-                    deleteTask(task)
-                },
-                isDeleteMode = isDeleteMode,
-                selectedTasks = selectedTasks
-            )
+            adapter = deletedTaskAdapter
         }
     }
 
     private fun fetchDeletedTasks() {
-        val userId = intent.getIntExtra("USER_ID", -1)
-        if (userId == -1) {
-            // Handle invalid userId (if necessary)
-            return
-        }
-
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // Fetch deleted tasks from the database directly
+                // Fetch deleted tasks for the user
                 val tasks = db.todoDao().getDeletedTasks(userId)
-
-                // Update UI on the main thread
+                Log.d("FetchDeletedTasks", "Fetched deleted tasks: $tasks")
                 withContext(Dispatchers.Main) {
                     deletedTasksList.clear()
                     deletedTasksList.addAll(tasks)
-                    binding.recyclerViewDeletedTasks.adapter?.notifyDataSetChanged()
+                    deletedTaskAdapter.notifyDataSetChanged()
+                    Log.d("FetchDeletedTasks", "Deleted tasks added to adapter: ${deletedTasksList.size}")
                 }
             } catch (e: Exception) {
-                // Handle any potential errors
+                Log.e("FetchDeletedTasks", "Error fetching deleted tasks: ${e.message}")
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@HistoryActivity, "Failed to fetch deleted tasks", Toast.LENGTH_SHORT).show()
+                }
                 e.printStackTrace()
             }
         }
     }
 
-    private fun toggleDeleteMode() {
-        isDeleteMode = !isDeleteMode // Toggle delete mode
-        binding.recyclerViewDeletedTasks.adapter?.notifyDataSetChanged() // Refresh the adapter to show/hide checkboxes
-    }
-
-    private fun deleteTask(task: TodoModel) {
-        // Perform deletion in the database
-        lifecycleScope.launch(Dispatchers.IO) {
-            db.todoDao().deleteTask(task.id)
-            // After deletion, update the UI by removing the task from the list
-            deletedTasksList.remove(task)
-            withContext(Dispatchers.Main) {
-                binding.recyclerViewDeletedTasks.adapter?.notifyDataSetChanged()
-            }
-        }
-    }
     private fun restoreTask(task: TodoModel) {
         lifecycleScope.launch(Dispatchers.IO) {
-            db.todoDao().restoreDeletedTask(task.id)
-            deletedTasksList.remove(task)
-            withContext(Dispatchers.Main) {
-                deletedTaskAdapter.notifyDataSetChanged()
-                Toast.makeText(this@HistoryActivity, "Task restored", Toast.LENGTH_SHORT).show()
+            try {
+                // Restore the deleted task
+                db.todoDao().restoreDeletedTask(task.id)
+                Log.d("RestoreTask", "Task restored: ${task.id}")
+
+                deletedTasksList.remove(task)
+                withContext(Dispatchers.Main) {
+                    deletedTaskAdapter.notifyDataSetChanged()
+                    Toast.makeText(this@HistoryActivity, "Task restored", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e("RestoreTask", "Error restoring task: ${e.message}")
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@HistoryActivity, "Failed to restore task", Toast.LENGTH_SHORT).show()
+                }
+                e.printStackTrace()
             }
         }
     }
 
     private fun permanentlyDeleteTask(task: TodoModel) {
         lifecycleScope.launch(Dispatchers.IO) {
-            db.todoDao().deleteTask(task.id)
-            deletedTasksList.remove(task)
-            withContext(Dispatchers.Main) {
-                deletedTaskAdapter.notifyDataSetChanged()
-                Toast.makeText(this@HistoryActivity, "Task permanently deleted", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-
-    private fun deleteSelectedTasks() {
-        // Perform batch deletion for selected tasks
-        lifecycleScope.launch(Dispatchers.IO) {
-            selectedTasks.forEach { task ->
+            try {
+                // Permanently delete the task from the database
                 db.todoDao().deleteTask(task.id)
-            }
-            // After deletion, update the UI by removing the tasks from the list
-            deletedTasksList.removeAll(selectedTasks)
-            selectedTasks.clear() // Clear selected tasks list
-            withContext(Dispatchers.Main) {
-                binding.recyclerViewDeletedTasks.adapter?.notifyDataSetChanged()
-                Toast.makeText(this@HistoryActivity, "Tasks deleted successfully", Toast.LENGTH_SHORT).show()
+                Log.d("PermanentDelete", "Task permanently deleted: ${task.id}")
+
+                deletedTasksList.remove(task)
+                withContext(Dispatchers.Main) {
+                    deletedTaskAdapter.notifyDataSetChanged()
+                    Toast.makeText(this@HistoryActivity, "Task permanently deleted", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e("PermanentDelete", "Error deleting task permanently: ${e.message}")
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@HistoryActivity, "Failed to delete task", Toast.LENGTH_SHORT).show()
+                }
+                e.printStackTrace()
             }
         }
     }

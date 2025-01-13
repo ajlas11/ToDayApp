@@ -268,12 +268,6 @@ class MainActivity : AppCompatActivity() {
 
         popupMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
-                R.id.nav_history -> {
-                    val intent = Intent(this, HistoryActivity::class.java)
-                    intent.putExtra("USER_ID", userId)
-                    startActivity(intent)
-                    true
-                }
                 R.id.nav_logout -> {
                     MaterialAlertDialogBuilder(this)
                         .setTitle("Logout")
@@ -312,7 +306,8 @@ class MainActivity : AppCompatActivity() {
     private fun deleteSelectedTasks() {
         lifecycleScope.launch(Dispatchers.IO) {
             selectedTasks.forEach { task ->
-                db.todoDao().markTaskAsDeleted(task.id) // Mark task as deleted in the database
+                db.todoDao().markTaskAsDeleted(task.id)
+                Log.d("TaskDelete", "Task marked as deleted: ${task.id}")// Mark task as deleted in the database
             }
 
             withContext(Dispatchers.Main) {
