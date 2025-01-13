@@ -67,10 +67,10 @@ class MainActivity : AppCompatActivity() {
         // Initialize the ActivityResultLauncher for TaskActivity
         startActivityForResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
-                // Refresh tasks when TaskActivity has added or updated a task
-                refreshTasks()
+                refreshTasks() // Refresh tasks to exclude completed ones
             }
         }
+
 
         // Handle "Add Task" button click
         binding.addTaskButton.setOnClickListener {
@@ -89,24 +89,18 @@ class MainActivity : AppCompatActivity() {
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
                 target: RecyclerView.ViewHolder
-            ): Boolean {
-                // Not used
-                return false
-            }
+            ): Boolean = false
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.adapterPosition
                 val task = filteredList[position]
 
-                // Mark task as completed
+                // Mark task as finished and remove it from the UI
                 lifecycleScope.launch(Dispatchers.IO) {
-                    db.todoDao().updateTaskCompletion(task.id, true)
-
+                    db.todoDao().finishTask(task.id)
                     withContext(Dispatchers.Main) {
-                        // Remove the task from the list if needed
                         filteredList.removeAt(position)
                         binding.todoRv.adapter?.notifyItemRemoved(position)
-
                         Toast.makeText(
                             this@MainActivity,
                             "Task '${task.title}' marked as completed!",
@@ -124,6 +118,7 @@ class MainActivity : AppCompatActivity() {
         val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
         itemTouchHelper.attachToRecyclerView(binding.todoRv)
     }
+
 
 
     private fun fetchJoke() {
@@ -225,9 +220,8 @@ class MainActivity : AppCompatActivity() {
         binding.progressBar.visibility = View.VISIBLE // Show ProgressBar
 
         lifecycleScope.launch(Dispatchers.IO) {
-            val taskList = db.todoDao().getTasksForUser(userId)
-
-            Log.d("DatabaseCheck", "Fetched tasks for user: $taskList")
+            // Query the database for incomplete tasks
+            val taskList = db.todoDao().getIncompleteTasksForUser(userId)
 
             withContext(Dispatchers.Main) {
                 list.clear()
@@ -235,15 +229,15 @@ class MainActivity : AppCompatActivity() {
                 filteredList.clear()
                 filteredList.addAll(taskList)
                 binding.todoRv.adapter?.notifyDataSetChanged()
-                binding.progressBar.visibility = View.GONE
+                binding.progressBar.visibility = View.GONE // Hide ProgressBar once tasks are fetched
             }
         }
     }
 
-    fun refreshTasks() {
+
+    private fun refreshTasks() {
         lifecycleScope.launch(Dispatchers.IO) {
-            val taskList = db.todoDao().getTasksForUser(userId)
-
+            val taskList = db.todoDao().getIncompleteTasksForUser(userId)
             withContext(Dispatchers.Main) {
                 list.clear()
                 list.addAll(taskList)
@@ -253,6 +247,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+
 
     private fun setupSearchBar() {
         binding.searchBar.setOnQueryTextListener(object : SearchView.OnQueryTextListener {

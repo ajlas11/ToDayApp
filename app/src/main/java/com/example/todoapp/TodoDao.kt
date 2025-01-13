@@ -12,13 +12,14 @@ interface TodoDao {
     @Insert
     suspend fun insertTask(todoModel: TodoModel): Long
 
-    // Get all unfinished tasks
+    // Get all unfinished and not deleted tasks
     @Query("SELECT * FROM TodoModel WHERE isFinished = 0 AND isDeleted = 0")
     suspend fun getTask(): List<TodoModel>
 
-    // Get tasks for a specific user
-    @Query("SELECT * FROM TodoModel WHERE userId = :userId")
-    suspend fun getTasksForUser(userId: Int): List<TodoModel>
+    // Get incomplete tasks for a specific user
+    @Query("SELECT * FROM TodoModel WHERE userId = :userId AND isFinished = 0 AND isDeleted = 0")
+    suspend fun getIncompleteTasksForUser(userId: Int): List<TodoModel>
+
 
     // Mark a task as finished
     @Query("UPDATE TodoModel SET isFinished = 1 WHERE id = :uid")
@@ -28,20 +29,23 @@ interface TodoDao {
     @Query("UPDATE TodoModel SET isDeleted = 1 WHERE id = :uid")
     suspend fun markTaskAsDeleted(uid: Long)
 
-
+    // Get deleted tasks for a specific user
     @Query("SELECT * FROM TodoModel WHERE userId = :userId AND isDeleted = 1")
     suspend fun getDeletedTasks(userId: Int): List<TodoModel>
-
-
 
     // Permanently delete a task
     @Query("DELETE FROM TodoModel WHERE id = :uid")
     suspend fun deleteTask(uid: Long)
 
+    // Restore a deleted task
+    @Query("UPDATE TodoModel SET isDeleted = 0 WHERE id = :uid")
+    suspend fun restoreDeletedTask(uid: Long)
+
     // Update a task object (general purpose update)
     @Update
     suspend fun updateTask(todoModel: TodoModel)
 
+    // Update specific fields of a task
     @Query("UPDATE TodoModel SET title = :title, description = :description, priority = :priority, date = :date, time = :time WHERE id = :taskId")
     suspend fun updateTask(
         taskId: Long,
@@ -56,8 +60,7 @@ interface TodoDao {
     @Query("UPDATE TodoModel SET completed = :isCompleted WHERE id = :taskId")
     suspend fun updateTaskCompletion(taskId: Long, isCompleted: Boolean)
 
-    @Query("UPDATE TodoModel SET isDeleted = 0 WHERE id = :uid")
-    suspend fun restoreDeletedTask(uid: Long)
-
-
+    // Get all completed tasks for a user (optional for displaying completed tasks)
+    @Query("SELECT * FROM TodoModel WHERE userId = :userId AND isFinished = 1 AND isDeleted = 0")
+    suspend fun getCompletedTasks(userId: Int): List<TodoModel>
 }
