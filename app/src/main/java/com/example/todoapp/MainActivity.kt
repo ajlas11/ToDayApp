@@ -16,6 +16,8 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import android.app.DatePickerDialog
 import android.util.Log
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import kotlinx.coroutines.withContext
@@ -54,6 +56,9 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        setupSortingOptions()
+        sortTasksByPriorityAndDate()
+
         setSupportActionBar(binding.toolbar)
         setupRecyclerView()
         setupSwipeToComplete() // Add swipe-to-complete functionality
@@ -81,6 +86,22 @@ class MainActivity : AppCompatActivity() {
         binding.deleteButton.setOnClickListener {
             deleteSelectedTasks()
         }
+    }
+    override fun onResume() {
+        super.onResume()
+        Log.d("MainActivityLifecycle", "onResume called: Task list refreshed.")
+        refreshTasks()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Log.d("MainActivityLifecycle", "onStop called: Saving app state.")
+
+        val sharedPreferences = getSharedPreferences("ToDoAppPrefs", MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        val currentSearchQuery = binding.searchBar.query.toString() // Save the search query
+        editor.putString("LastSearchQuery", currentSearchQuery)
+        editor.apply()
     }
 
     private fun setupSwipeToComplete() {
@@ -220,14 +241,12 @@ class MainActivity : AppCompatActivity() {
         binding.progressBar.visibility = View.VISIBLE // Show ProgressBar
 
         lifecycleScope.launch(Dispatchers.IO) {
-            // Query the database for incomplete tasks
-            val taskList = db.todoDao().getIncompleteTasksForUser(userId)
-
+            val sortedTasks = db.todoDao().getTasksSortedByPriorityAndDate()
             withContext(Dispatchers.Main) {
                 list.clear()
-                list.addAll(taskList)
+                list.addAll(sortedTasks)
                 filteredList.clear()
-                filteredList.addAll(taskList)
+                filteredList.addAll(sortedTasks)
                 binding.todoRv.adapter?.notifyDataSetChanged()
                 binding.progressBar.visibility = View.GONE // Hide ProgressBar once tasks are fetched
             }
@@ -390,5 +409,55 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    private fun setupSortingOptions() {
+        val sortingOptions = resources.getStringArray(R.array.sorting_options)
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, sortingOptions)
+        binding.sortingOptions.adapter = adapter
+
+        binding.sortingOptions.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                when (sortingOptions[position]) {
+                    "Priority" -> sortTasksByPriorityAndDate() // Call the function here
+                    "Due Date" -> sortTasksByDueDate() // Another sorting function
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
+    }
+
+
+    private fun sortTasksByPriority() {
+        filteredList.sortWith(compareBy(
+            { when (it.priority) {
+                "High" -> 1
+                "Medium" -> 2
+                "Low" -> 3
+                else -> 4
+            }},
+            { it.date }
+        ))
+        binding.todoRv.adapter?.notifyDataSetChanged()
+    }
+
+    private fun sortTasksByDueDate() {
+        filteredList.sortBy { it.date }
+        binding.todoRv.adapter?.notifyDataSetChanged()
+    }
+
+    private fun sortTasksByPriorityAndDate() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val sortedTasks = db.todoDao().getTasksSortedByPriorityAndDate()
+            withContext(Dispatchers.Main) {
+                filteredList.clear()
+                filteredList.addAll(sortedTasks)
+                binding.todoRv.adapter?.notifyDataSetChanged()
+            }
+        }
+    }
+
+
+
 
 }

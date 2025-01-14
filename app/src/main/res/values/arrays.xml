@@ -5,4 +5,10 @@
         <item>Medium</item>
         <item>High</item>
     </string-array>
+
+    <string-array name="sorting_options">
+        <item>Priority</item>
+        <item>Due Date</item>
+    </string-array>
+
 </resources>

@@ -15,24 +15,13 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- Checkbox for Task Completion -->
-        <CheckBox
-            android:id="@+id/checkboxTaskCompleted"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:layout_marginEnd="8dp"
-            android:buttonTint="@android:color/white"
-            android:contentDescription="@string/mark_task_completed"
-            tools:checked="false" />
+
 
         <!-- Task Title -->
         <TextView
             android:id="@+id/txtShowTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@id/checkboxTaskCompleted"
             android:layout_marginEnd="8dp"
             android:ellipsize="end"
             android:maxLines="1"
@@ -46,7 +35,6 @@
             android:id="@+id/txtShowTask"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@id/checkboxTaskCompleted"
             android:layout_below="@id/txtShowTitle"
             android:layout_marginTop="4dp"
             android:ellipsize="end"
@@ -70,7 +58,6 @@
             android:id="@+id/txtShowDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@id/checkboxTaskCompleted"
             android:layout_below="@id/txtShowTask"
             android:layout_marginTop="8dp"
             android:textColor="@android:color/white"
