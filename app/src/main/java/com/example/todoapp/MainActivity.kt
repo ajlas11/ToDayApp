@@ -27,7 +27,6 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.util.Calendar
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 
 class MainActivity : AppCompatActivity() {
 
@@ -44,7 +43,6 @@ class MainActivity : AppCompatActivity() {
 
     private var userId: Int = -1
 
-    // Define the ActivityResultLauncher to handle activity result from TaskActivity
     private lateinit var startActivityForResultLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,10 +64,9 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.toolbar)
         setupRecyclerView()
-        setupSwipeToComplete() // Add swipe-to-complete functionality
+        setupSwipeToComplete()
         setupBottomNavigation()
 
-        // Fetch all tasks for the user
         getTasksForUser(userId)
 
         setupSearchBar()
@@ -80,26 +77,50 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Fetch all tasks for the user
         loadTasks()
 
-        // Initialize the ActivityResultLauncher for TaskActivity
         startActivityForResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
-                refreshTasks() // Refresh tasks to exclude completed ones
+                refreshTasks()
             }
         }
 
 
-        // Handle "Add Task" button click
         binding.addTaskButton.setOnClickListener {
             openNewTask()
         }
 
-        // Handle "Delete Selected Tasks" button click
         binding.deleteButton.setOnClickListener {
             deleteSelectedTasks()
         }
+    }
+    override fun onRestart() {
+        super.onRestart()
+        Log.d("MainActivityLifecycle", "onRestart called: Activity is restarting.")
+    }
+    override fun onStart() {
+        super.onStart()
+        Log.d("MainActivityLifecycle", "onStart called: Restoring app state.")
+
+        val sharedPreferences = getSharedPreferences("ToDoAppPrefs", MODE_PRIVATE)
+        val lastSearchQuery = sharedPreferences.getString("LastSearchQuery", null)
+
+        if (!lastSearchQuery.isNullOrEmpty()) {
+            binding.searchBar.setQuery(lastSearchQuery, false)
+            filterTasks(lastSearchQuery)
+            Log.d("MainActivityLifecycle", "Restored search query: $lastSearchQuery")
+        }
+    }
+
+
+    override fun onPause() {
+        super.onPause()
+        Log.d("MainActivityLifecycle", "onPause called: Activity is partially visible.")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d("MainActivityLifecycle", "onDestroy called: Activity is being destroyed.")
     }
     override fun onResume() {
         super.onResume()
@@ -113,10 +134,11 @@ class MainActivity : AppCompatActivity() {
 
         val sharedPreferences = getSharedPreferences("ToDoAppPrefs", MODE_PRIVATE)
         val editor = sharedPreferences.edit()
-        val currentSearchQuery = binding.searchBar.query.toString() // Save the search query
+        val currentSearchQuery = binding.searchBar.query.toString()
         editor.putString("LastSearchQuery", currentSearchQuery)
         editor.apply()
     }
+
     private fun loadTasks() {
         lifecycleScope.launch(Dispatchers.IO) {
             val tasks = db.todoDao().getTasksSortedByPriorityAndDate()
