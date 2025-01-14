@@ -4,4 +4,10 @@
         android:id="@+id/nav_logout"
         android:title="Logout"
         android:icon="@drawable/ic_logout" />
+
+    <item
+        android:id="@+id/nav_completed"
+        android:icon="@drawable/ic_completed"
+        android:title="Completed Tasks" />
+
 </menu>

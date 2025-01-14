@@ -7,15 +7,15 @@ import androidx.room.PrimaryKey
 data class TodoModel(
     var title: String,
     var description: String,
-    var priority: String, // Priority field retained
+    var priority: String,
     var date: Long = 0L,
     var time: Long = 0L,
-    var isFinished: Int = 0, // Represents task completion status
-    var isDeleted: Int = 0, // Represents if the task is deleted
-    var userId: Int, // ID of the user who owns the task
-    var completed: Boolean = false, // Tracks task completion
+    var isFinished: Int = 0,
+    var isDeleted: Int = 0,
+    var userId: Int,
+    var completed: Boolean = false,
     @PrimaryKey(autoGenerate = true)
-    var id: Long = 0 // Unique identifier for each task
+    var id: Long = 0
 ) {
     init {
         require(title.isNotBlank()) { "Title cannot be blank" }

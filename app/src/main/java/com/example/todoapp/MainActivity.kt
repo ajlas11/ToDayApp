@@ -164,8 +164,11 @@ class MainActivity : AppCompatActivity() {
                 val task = filteredList[position]
 
                 lifecycleScope.launch(Dispatchers.IO) {
+                    Log.d("MainActivity", "Updating task with ID: ${task.id} to isFinished = true")
                     // Permanently delete the task from the database
-                    db.todoDao().deleteTaskPermanently(task.id)
+                    db.todoDao().updateTaskCompletion(task.id.toInt(), true)
+                    Log.d("MainActivity", "Task marked as completed: ${task.title}")
+
                     withContext(Dispatchers.Main) {
                         // Remove the task from the UI
                         filteredList.removeAt(position)
@@ -173,6 +176,7 @@ class MainActivity : AppCompatActivity() {
                         Snackbar.make(binding.root, "Task '${task.title}' completed and removed!", Snackbar.LENGTH_LONG).show()
                     }
                 }
+                fetchJoke()
             }
         }
 
@@ -245,7 +249,7 @@ class MainActivity : AppCompatActivity() {
                 onEditClick = { task -> openEditTask(task) },
                 onTaskCompleted = { task, isCompleted ->
                     lifecycleScope.launch(Dispatchers.IO) {
-                        db.todoDao().updateTaskCompletion(task.id, isCompleted)
+                        db.todoDao().updateTaskCompletion(task.id.toInt(), isCompleted)
                     }
                 },
                 onDeleteClick = { task ->
@@ -284,7 +288,6 @@ class MainActivity : AppCompatActivity() {
         binding.progressBar.visibility = View.VISIBLE // Show ProgressBar
 
         lifecycleScope.launch(Dispatchers.IO) {
-            // Fetch only incomplete and non-deleted tasks
             val tasks = db.todoDao().getIncompleteTasksForUser(userId)
             withContext(Dispatchers.Main) {
                 list.clear()
@@ -417,13 +420,19 @@ class MainActivity : AppCompatActivity() {
                     toggleDeleteMode()
                     true
                 }
-
+                R.id.nav_completed -> { // New option for Completed Tasks
+                    val intent = Intent(this, CompletedTasksActivity::class.java)
+                    intent.putExtra("USER_ID", userId) // Pass the user ID
+                    startActivity(intent)
+                    true
+                }
                 else -> false
             }
         }
 
         popupMenu.show()
     }
+
 
     private fun toggleDeleteMode() {
         isDeleteMode = !isDeleteMode
