@@ -141,29 +141,23 @@ class MainActivity : AppCompatActivity() {
                 val position = viewHolder.adapterPosition
                 val task = filteredList[position]
 
-                // Mark task as finished and remove it from the UI
                 lifecycleScope.launch(Dispatchers.IO) {
-                    db.todoDao().finishTask(task.id)
+                    // Permanently delete the task from the database
+                    db.todoDao().deleteTaskPermanently(task.id)
                     withContext(Dispatchers.Main) {
+                        // Remove the task from the UI
                         filteredList.removeAt(position)
                         binding.todoRv.adapter?.notifyItemRemoved(position)
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Task '${task.title}' marked as completed!",
-                            Toast.LENGTH_SHORT
-                        ).show()
-
-                        // Fetch and display a joke
-                        fetchJoke()
+                        Snackbar.make(binding.root, "Task '${task.title}' completed and removed!", Snackbar.LENGTH_LONG).show()
                     }
                 }
             }
         }
 
-        // Attach the ItemTouchHelper to the RecyclerView
         val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
         itemTouchHelper.attachToRecyclerView(binding.todoRv)
     }
+
 
 
 
@@ -268,14 +262,15 @@ class MainActivity : AppCompatActivity() {
         binding.progressBar.visibility = View.VISIBLE // Show ProgressBar
 
         lifecycleScope.launch(Dispatchers.IO) {
-            val sortedTasks = db.todoDao().getTasksSortedByPriorityAndDate()
+            // Fetch only incomplete and non-deleted tasks
+            val tasks = db.todoDao().getIncompleteTasksForUser(userId)
             withContext(Dispatchers.Main) {
                 list.clear()
-                list.addAll(sortedTasks)
+                list.addAll(tasks)
                 filteredList.clear()
-                filteredList.addAll(sortedTasks)
+                filteredList.addAll(tasks)
                 binding.todoRv.adapter?.notifyDataSetChanged()
-                binding.progressBar.visibility = View.GONE // Hide ProgressBar once tasks are fetched
+                binding.progressBar.visibility = View.GONE // Hide ProgressBar
             }
         }
     }
@@ -411,10 +406,10 @@ class MainActivity : AppCompatActivity() {
     private fun toggleDeleteMode() {
         isDeleteMode = !isDeleteMode
         binding.deleteButton.visibility = if (isDeleteMode) View.VISIBLE else View.GONE
-        binding.todoRv.adapter?.notifyDataSetChanged() // Refresh RecyclerView to show checkboxes
+        binding.todoRv.adapter?.notifyDataSetChanged()
 
         binding.deleteButton.setOnClickListener {
-            deleteSelectedTasks() // Call here
+            deleteSelectedTasks()
         }
     }
 
@@ -422,8 +417,7 @@ class MainActivity : AppCompatActivity() {
     private fun deleteSelectedTasks() {
         lifecycleScope.launch(Dispatchers.IO) {
             selectedTasks.forEach { task ->
-                db.todoDao().markTaskAsDeleted(task.id)
-                Log.d("TaskDelete", "Task marked as deleted: ${task.id}")// Mark task as deleted in the database
+                db.todoDao().markTaskAsDeleted(task.id) // Persist task deletion in the database
             }
 
             withContext(Dispatchers.Main) {
@@ -431,11 +425,13 @@ class MainActivity : AppCompatActivity() {
                 filteredList.removeAll(selectedTasks)
                 selectedTasks.clear()
                 binding.todoRv.adapter?.notifyDataSetChanged()
-                Toast.makeText(this@MainActivity, "Tasks deleted successfully", Toast.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, "Selected tasks deleted successfully!", Snackbar.LENGTH_SHORT).show()
                 toggleDeleteMode() // Exit delete mode
             }
         }
     }
+
+
 
     private fun setupSortingOptions() {
         val sortingOptions = resources.getStringArray(R.array.sorting_options)

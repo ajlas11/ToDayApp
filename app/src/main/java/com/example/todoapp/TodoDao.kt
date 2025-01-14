@@ -20,9 +20,12 @@ interface TodoDao {
     @Query("SELECT * FROM TodoModel WHERE userId = :userId AND isFinished = 0 AND isDeleted = 0")
     suspend fun getIncompleteTasksForUser(userId: Int): List<TodoModel>
 
+
+
     // Mark a task as finished
     @Query("UPDATE TodoModel SET isFinished = 1 WHERE id = :uid")
     suspend fun finishTask(uid: Long)
+
 
     // Mark a task as deleted
     @Query("UPDATE TodoModel SET isDeleted = 1 WHERE id = :uid")
@@ -76,4 +79,10 @@ interface TodoDao {
             date ASC
     """)
     suspend fun getTasksSortedByPriorityAndDate(): List<TodoModel>
+
+    @Query("DELETE FROM TodoModel WHERE id = :uid")
+    suspend fun deleteTaskPermanently(uid: Long)
+
+
+
 }
