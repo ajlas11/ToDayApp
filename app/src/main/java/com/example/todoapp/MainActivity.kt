@@ -493,7 +493,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun sortTasksByDueDate() {
-        filteredList.sortBy { it.date }
+        filteredList.sortWith(compareBy({ it.date }, { it.time }))
         binding.todoRv.adapter?.notifyDataSetChanged()
     }
 
