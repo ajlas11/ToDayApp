@@ -27,7 +27,6 @@ class HistoryActivity : AppCompatActivity() {
         binding = ActivityHistoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Retrieve userId from the intent
         userId = intent.getIntExtra("USER_ID", -1)
         if (userId == -1) {
             Toast.makeText(this, "Invalid user ID", Toast.LENGTH_SHORT).show()
@@ -35,13 +34,10 @@ class HistoryActivity : AppCompatActivity() {
             return
         }
 
-        // Set up the toolbar
         setupToolbar()
 
-        // Set up the RecyclerView
         setupRecyclerView()
 
-        // Fetch deleted tasks
         fetchDeletedTasks()
     }
 

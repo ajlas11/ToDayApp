@@ -76,7 +76,7 @@ class SignupActivity : AppCompatActivity() {
     companion object {
         private val PASSWORD_PATTERN: Pattern =
             Pattern.compile(
-                "^(?=.*[A-Z])(?=.*[0-9]).{8,}$" // At least 8 characters, one uppercase letter, and one digit
+                "^(?=.*[A-Z])(?=.*[0-9]).{8,}$"
             )
     }
 }

@@ -6,7 +6,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -31,18 +30,17 @@ class TaskActivity : AppCompatActivity(), View.OnClickListener {
 
     private val priorities = listOf("Low", "Medium", "High") // Priority options
 
-    private var userId: Int = -1 // User ID to associate tasks with the logged-in user
-    private var taskId: Long = -1L // Task ID for editing an existing task
+    private var userId: Int = -1
+    private var taskId: Long = -1L
 
     private val db by lazy {
         AppDatabase.getDatabase(this)
     }
 
-    // Define the ActivityResultLauncher to handle task result from TaskActivity
     private val startActivityForResultLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
-                setResult(RESULT_OK)  // Indicating that the task has been added or updated
+                setResult(RESULT_OK)
                 finish()
             }
         }
@@ -52,16 +50,14 @@ class TaskActivity : AppCompatActivity(), View.OnClickListener {
         binding = ActivityTaskBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Retrieve the userId and taskId passed from the previous activity
         userId = intent.getIntExtra("USER_ID", -1)
         taskId = intent.getLongExtra("TASK_ID", -1L)
 
         if (userId == -1) {
             Snackbar.make(binding.root, "Error: User ID not found", Snackbar.LENGTH_SHORT).show()
-            finish() // Exit the activity if userId is invalid
+            finish()
         }
 
-        // If taskId is valid, populate the fields with the task data
         if (taskId != -1L) {
             populateTaskData()
         }
@@ -93,9 +89,9 @@ class TaskActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun populateTaskData() {
-        val title = intent.getStringExtra("TITLE") ?: "" // Default empty if null
-        val description = intent.getStringExtra("DESCRIPTION") ?: "" // Default empty if null
-        val priority = intent.getStringExtra("PRIORITY") ?: "Low" // Default to "Low" if null
+        val title = intent.getStringExtra("TITLE") ?: ""
+        val description = intent.getStringExtra("DESCRIPTION") ?: ""
+        val priority = intent.getStringExtra("PRIORITY") ?: "Low"
         val date = intent.getLongExtra("DATE", 0L)
         val time = intent.getLongExtra("TIME", 0L)
 
@@ -155,10 +151,9 @@ class TaskActivity : AppCompatActivity(), View.OnClickListener {
                 )
             )
 
-            // Send the result back to MainActivity
             withContext(Dispatchers.Main) {
-                setResult(RESULT_OK)  // Indicating that the task has been added
-                finish()  // Close the current activity and return to MainActivity
+                setResult(RESULT_OK)
+                finish()
             }
         }
     }
@@ -191,10 +186,10 @@ class TaskActivity : AppCompatActivity(), View.OnClickListener {
                 )
             )
 
-            // Send the result back to MainActivity to refresh the task list
+
             withContext(Dispatchers.Main) {
-                setResult(RESULT_OK)  // Indicating that the task has been updated
-                finish()  // Close the current activity and return to MainActivity
+                setResult(RESULT_OK)
+                finish()
             }
         }
     }

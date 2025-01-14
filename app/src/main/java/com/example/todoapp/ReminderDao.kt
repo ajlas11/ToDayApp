@@ -10,10 +10,10 @@ interface ReminderDao {
     suspend fun insertReminder(reminder: Reminder): Long
 
     @Query("SELECT * FROM Reminder")
-    fun getAllReminders(): LiveData<List<Reminder>> // LiveData for real-time updates
+    fun getAllReminders(): LiveData<List<Reminder>>
 
     @Query("SELECT * FROM Reminder WHERE id = :reminderId")
-    fun getReminderById(reminderId: Int): LiveData<Reminder?> // LiveData for real-time updates
+    fun getReminderById(reminderId: Int): LiveData<Reminder?>
 
     @Update
     suspend fun updateReminder(reminder: Reminder)

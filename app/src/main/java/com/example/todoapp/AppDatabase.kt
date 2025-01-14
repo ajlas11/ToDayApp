@@ -23,7 +23,6 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        // Migration from version 4 to 5
         private val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL(
@@ -54,7 +53,6 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        // Migration from version 5 to 6
         private val MIGRATION_5_6 = object : Migration(5, 6) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL(
@@ -71,14 +69,12 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        // Migration from version 6 to 7
         private val MIGRATION_6_7 = object : Migration(6, 7) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE TodoModel ADD COLUMN completed INTEGER NOT NULL DEFAULT 0")
             }
         }
 
-        // Migration from version 7 to 8
         private val MIGRATION_7_8 = object : Migration(7, 8) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL(
@@ -107,10 +103,8 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        // Migration from version 8 to 9 with column existence check
         private val MIGRATION_8_9 = object : Migration(8, 9) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                // Check if the "isDeleted" column already exists
                 val cursor = database.query("PRAGMA table_info(TodoModel)")
                 var columnExists = false
                 while (cursor.moveToNext()) {
@@ -122,7 +116,6 @@ abstract class AppDatabase : RoomDatabase() {
                 }
                 cursor.close()
 
-                // Add the column only if it doesn't exist
                 if (!columnExists) {
                     database.execSQL("ALTER TABLE TodoModel ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0")
                 }
@@ -130,7 +123,6 @@ abstract class AppDatabase : RoomDatabase() {
         }
         private val MIGRATION_9_10 = object : Migration(9, 10) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                // If you've added a new column (e.g., "email"), add it here
                 database.execSQL("ALTER TABLE User ADD COLUMN email TEXT NOT NULL DEFAULT ''")
             }
         }

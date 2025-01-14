@@ -36,7 +36,6 @@ class DeletedTaskAdapter(
                 onRestoreClick(task)
             }
 
-            // Permanently delete button
             binding.btnPermanentlyDeleteTask.setOnClickListener {
                 onPermanentlyDeleteClick(task)
             }

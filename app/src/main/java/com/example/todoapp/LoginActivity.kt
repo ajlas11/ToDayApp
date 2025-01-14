@@ -28,18 +28,15 @@ class LoginActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // Login button click listener
         loginButton.setOnClickListener {
             val username = usernameField.text.toString()
             val password = passwordField.text.toString()
 
-            // Validate input
             if (username.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // Check user in database
             lifecycleScope.launch(Dispatchers.IO) {
                 val user = db.userDao().getUser(username, password)
                 runOnUiThread {
@@ -52,7 +49,6 @@ class LoginActivity : AppCompatActivity() {
             }
         }
 
-        // Redirect to SignupActivity
         signupRedirect.setOnClickListener {
             val intent = Intent(this, SignupActivity::class.java)
             startActivity(intent)
@@ -60,7 +56,6 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun onLoginSuccess(userId: Int) {
-        // Navigate to MainActivity with the user ID
         val intent = Intent(this, MainActivity::class.java)
         intent.putExtra("USER_ID", userId)
         startActivity(intent)

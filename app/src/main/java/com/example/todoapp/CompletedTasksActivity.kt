@@ -40,7 +40,7 @@ class CompletedTasksActivity : AppCompatActivity() {
 
         userId = intent.getIntExtra("USER_ID", -1)
         if (userId == -1) {
-            finish() // Invalid user ID
+            finish()
             return
         }
 
@@ -50,7 +50,6 @@ class CompletedTasksActivity : AppCompatActivity() {
     }
 
     private fun setupToolbar() {
-        // Set up the toolbar with a back button
         binding.toolbar.setNavigationIcon(R.drawable.ic_back_arrow)
         binding.toolbar.setNavigationOnClickListener {
             finish() // Close the activity and go back

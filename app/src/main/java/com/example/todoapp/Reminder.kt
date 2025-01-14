@@ -15,10 +15,10 @@ import androidx.room.PrimaryKey
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index(value = ["taskId"])] // Add index for taskId
+    indices = [Index(value = ["taskId"])]
 )
 data class Reminder(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val taskId: Int, // Foreign key linking to TodoModel
-    val reminderTime: Long // Timestamp for the reminder
+    val taskId: Int,
+    val reminderTime: Long
 )

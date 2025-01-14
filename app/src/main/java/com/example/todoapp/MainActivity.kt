@@ -32,9 +32,9 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val list = arrayListOf<TodoModel>()
-    private val filteredList = arrayListOf<TodoModel>() // For filtered search results
-    private val selectedTasks = mutableListOf<TodoModel>() // List to track selected tasks for deletion
-    private var isDeleteMode = false // Flag to toggle delete mode
+    private val filteredList = arrayListOf<TodoModel>()
+    private val selectedTasks = mutableListOf<TodoModel>()
+    private var isDeleteMode = false
     private val taskListFlow = MutableStateFlow<List<TodoModel>>(emptyList())
 
     private val db by lazy {
@@ -137,8 +137,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadTasks() {
         lifecycleScope.launch(Dispatchers.IO) {
-            val tasks = db.todoDao().getTasksSortedByPriorityAndDate(userId) // Pass userId
-            taskListFlow.value = tasks // Update StateFlow
+            val tasks = db.todoDao().getTasksSortedByPriorityAndDate(userId)
+            taskListFlow.value = tasks
         }
     }
 
@@ -161,7 +161,7 @@ class MainActivity : AppCompatActivity() {
                 val task = filteredList[position]
 
                 lifecycleScope.launch(Dispatchers.IO) {
-                    db.todoDao().updateTaskCompletion(task.id.toInt(), true) // Mark as completed
+                    db.todoDao().updateTaskCompletion(task.id.toInt(), true)
                     withContext(Dispatchers.Main) {
                         filteredList.removeAt(position)
                         binding.todoRv.adapter?.notifyItemRemoved(position)
@@ -192,7 +192,6 @@ class MainActivity : AppCompatActivity() {
                         "${jokeResponse?.setup}\n\n${jokeResponse?.delivery}"
                     }
 
-                    // Display the joke in a Material Alert Dialog
                     MaterialAlertDialogBuilder(this@MainActivity)
                         .setTitle("Programming Joke")
                         .setMessage(joke ?: "No joke found")
@@ -216,7 +215,7 @@ class MainActivity : AppCompatActivity() {
     private fun openNewTask() {
         val intent = Intent(this, TaskActivity::class.java)
         intent.putExtra("USER_ID", userId)
-        startActivityForResultLauncher.launch(intent)  // Launch TaskActivity with the result launcher
+        startActivityForResultLauncher.launch(intent)
     }
 
     private fun setupRecyclerView() {
@@ -224,11 +223,10 @@ class MainActivity : AppCompatActivity() {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = TodoAdapter(
                 filteredList,
-                selectedTasks = selectedTasks, // Pass selectedTasks to the adapter
-                isDeleteMode = isDeleteMode, // Pass isDeleteMode to the adapter
+                selectedTasks = selectedTasks,
+                isDeleteMode = isDeleteMode,
                 onTaskClick = { task ->
                     if (isDeleteMode) {
-                        // Toggle task selection when in delete mode
                         if (selectedTasks.contains(task)) {
                             selectedTasks.remove(task)
                         } else {
@@ -236,7 +234,6 @@ class MainActivity : AppCompatActivity() {
                         }
                         binding.todoRv.adapter?.notifyDataSetChanged()
                     } else {
-                        // Open edit task if not in delete mode
                         openEditTask(task)
                     }
                 },
@@ -256,7 +253,7 @@ class MainActivity : AppCompatActivity() {
                             }
                             list.remove(task)
                             filteredList.remove(task)
-                            binding.todoRv.adapter?.notifyItemRemoved(filteredList.indexOf(task))  // Use notifyItemRemoved instead of notifyDataSetChanged
+                            binding.todoRv.adapter?.notifyItemRemoved(filteredList.indexOf(task))
                         }
                         .setNegativeButton("No", null)
                         .show()
@@ -296,7 +293,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         Log.d("MainActivityLifecycle", "onResume called: Task list refreshed.")
-        getTasksForUser(userId) // Refresh tasks on activity resume
+        getTasksForUser(userId)
     }
 
 
@@ -364,7 +361,7 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.nav_joke -> {
-                    fetchJoke() // Fetch and display a joke
+                    fetchJoke()
                     true
                 }
 
@@ -419,7 +416,7 @@ class MainActivity : AppCompatActivity() {
                     toggleDeleteMode()
                     true
                 }
-                R.id.nav_completed -> { // New option for Completed Tasks
+                R.id.nav_completed -> {
                     val intent = Intent(this, CompletedTasksActivity::class.java)
                     intent.putExtra("USER_ID", userId) // Pass the user ID
                     startActivity(intent)
@@ -451,7 +448,7 @@ class MainActivity : AppCompatActivity() {
     private fun deleteSelectedTasks() {
         lifecycleScope.launch(Dispatchers.IO) {
             selectedTasks.forEach { task ->
-                db.todoDao().markTaskAsDeleted(task.id) // Persist task deletion in the database
+                db.todoDao().markTaskAsDeleted(task.id)
             }
 
             withContext(Dispatchers.Main) {
@@ -460,7 +457,7 @@ class MainActivity : AppCompatActivity() {
                 selectedTasks.clear()
                 binding.todoRv.adapter?.notifyDataSetChanged()
                 Snackbar.make(binding.root, "Selected tasks deleted successfully!", Snackbar.LENGTH_SHORT).show()
-                toggleDeleteMode() // Exit delete mode
+                toggleDeleteMode()
             }
         }
     }
@@ -475,8 +472,8 @@ class MainActivity : AppCompatActivity() {
         binding.sortingOptions.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                 when (sortingOptions[position]) {
-                    "Priority" -> sortTasksByPriorityAndDate() // Call the function here
-                    "Due Date" -> sortTasksByDueDate() // Another sorting function
+                    "Priority" -> sortTasksByPriorityAndDate()
+                    "Due Date" -> sortTasksByDueDate()
                 }
             }
 

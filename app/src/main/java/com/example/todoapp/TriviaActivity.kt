@@ -2,7 +2,6 @@ package com.example.todoapp
 
 import android.os.Bundle
 import android.text.Html
-import android.text.Spanned
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -22,7 +21,7 @@ class TriviaActivity : AppCompatActivity() {
 
         // Setup toolbar with back navigation
         binding.toolbar.setNavigationOnClickListener {
-            finish() // Finish the activity to navigate back
+            finish()
         }
 
         binding.fetchTriviaButton.setOnClickListener {

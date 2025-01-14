@@ -14,9 +14,9 @@ class TodoAdapter(
     private val onTaskClick: (TodoModel) -> Unit,
     private val onEditClick: (TodoModel) -> Unit,
     private val onTaskCompleted: (TodoModel, Boolean) -> Unit,
-    private val onDeleteClick: (TodoModel) -> Unit, // Lambda for delete button clicks
-    private val isDeleteMode: Boolean, // Pass delete mode from activity
-    private val selectedTasks: MutableList<TodoModel> // Track selected tasks for deletion
+    private val onDeleteClick: (TodoModel) -> Unit,
+    private val isDeleteMode: Boolean,
+    private val selectedTasks: MutableList<TodoModel>
 ) : RecyclerView.Adapter<TodoAdapter.TodoViewHolder>() {
 
     class TodoViewHolder(
@@ -32,7 +32,6 @@ class TodoAdapter(
         fun bind(todoModel: TodoModel) {
             val context = binding.root.context
 
-            // Set priority dot color based on priority level
             val priorityColor = when (todoModel.priority) {
                 "Low" -> R.color.priority_low
                 "Medium" -> R.color.priority_medium
@@ -41,11 +40,9 @@ class TodoAdapter(
             }
             binding.priorityDot.setBackgroundColor(ContextCompat.getColor(context, priorityColor))
 
-            // Set text values for task details
             binding.txtShowTitle.text = todoModel.title
             binding.txtShowTask.text = todoModel.description
 
-            // Display date if set, otherwise hide
             if (todoModel.date != 0L) {
                 binding.txtShowDate.visibility = View.VISIBLE
                 binding.txtShowDate.text = formatDate(todoModel.date)
@@ -53,7 +50,6 @@ class TodoAdapter(
                 binding.txtShowDate.visibility = View.GONE
             }
 
-            // Display time if set, otherwise hide
             if (todoModel.time != 0L) {
                 binding.txtShowTime.visibility = View.VISIBLE
                 binding.txtShowTime.text = formatTime(todoModel.time)
@@ -61,19 +57,17 @@ class TodoAdapter(
                 binding.txtShowTime.visibility = View.GONE
             }
 
-            // Show delete button only if not in delete mode (optional)
             binding.btnDelete.visibility = if (isDeleteMode) View.GONE else View.VISIBLE
             binding.btnDelete.setOnClickListener {
-                onDeleteClick(todoModel) // Call delete lambda
+                onDeleteClick(todoModel)
             }
 
-            // Set click listeners for task and edit
             binding.root.setOnClickListener {
-                onTaskClick(todoModel) // Call task click lambda
+                onTaskClick(todoModel)
             }
 
             binding.btnEdit.setOnClickListener {
-                onEditClick(todoModel) // Call edit click lambda
+                onEditClick(todoModel)
             }
         }
 
@@ -96,7 +90,7 @@ class TodoAdapter(
     }
 
     override fun onBindViewHolder(holder: TodoViewHolder, position: Int) {
-        holder.bind(list[position]) // Bind the data to the ViewHolder
+        holder.bind(list[position])
     }
 
     override fun getItemCount() = list.size
