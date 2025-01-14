@@ -10,4 +10,10 @@
         android:icon="@drawable/ic_completed"
         android:title="Completed Tasks" />
 
+    <item
+        android:id="@+id/nav_trivia"
+        android:title="Trivia"
+        android:icon="@drawable/ic_trivia" />
+
+
 </menu>

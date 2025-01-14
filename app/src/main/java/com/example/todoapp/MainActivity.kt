@@ -425,6 +425,10 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                     true
                 }
+                R.id.nav_trivia -> {
+                    startActivity(Intent(this, TriviaActivity::class.java))
+                    true
+                }
                 else -> false
             }
         }

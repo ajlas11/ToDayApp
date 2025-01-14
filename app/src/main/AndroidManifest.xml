@@ -43,6 +43,8 @@
             android:exported="true" />
 
         <activity android:name=".CompletedTasksActivity" />
+        <activity android:name=".TriviaActivity" />
+
 
 
     </application>
