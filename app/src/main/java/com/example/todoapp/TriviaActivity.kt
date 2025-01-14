@@ -2,6 +2,7 @@ package com.example.todoapp
 
 import android.os.Bundle
 import android.text.Html
+import android.text.Spanned
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -38,8 +39,8 @@ class TriviaActivity : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     triviaQuestion?.let {
                         // Decode HTML entities for better readability
-                        val decodedQuestion = Html.fromHtml(it.question, Html.FROM_HTML_MODE_COMPACT).toString()
-                        val decodedCategory = Html.fromHtml(it.category, Html.FROM_HTML_MODE_COMPACT).toString()
+                        val decodedQuestion = decodeHtml(it.question)
+                        val decodedCategory = decodeHtml(it.category)
 
                         binding.triviaQuestion.text = "Category: $decodedCategory\n\nQ: $decodedQuestion"
                     } ?: run {
@@ -51,6 +52,15 @@ class TriviaActivity : AppCompatActivity() {
                     Toast.makeText(this@TriviaActivity, "Failed to fetch trivia", Toast.LENGTH_SHORT).show()
                 }
             }
+        }
+    }
+
+    // Fallback method to decode HTML for older API levels
+    private fun decodeHtml(html: String): String {
+        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            Html.fromHtml(html, Html.FROM_HTML_MODE_COMPACT).toString()
+        } else {
+            Html.fromHtml(html).toString()
         }
     }
 }
