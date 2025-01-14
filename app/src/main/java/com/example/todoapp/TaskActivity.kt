@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.todoapp.databinding.ActivityTaskBinding
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -56,7 +57,7 @@ class TaskActivity : AppCompatActivity(), View.OnClickListener {
         taskId = intent.getLongExtra("TASK_ID", -1L)
 
         if (userId == -1) {
-            Toast.makeText(this, "Error: User ID not found", Toast.LENGTH_SHORT).show()
+            Snackbar.make(binding.root, "Error: User ID not found", Snackbar.LENGTH_SHORT).show()
             finish() // Exit the activity if userId is invalid
         }
 
@@ -133,7 +134,7 @@ class TaskActivity : AppCompatActivity(), View.OnClickListener {
         val description = binding.taskInpLay.editText?.text.toString()
 
         if (title.isEmpty() || description.isEmpty()) {
-            Toast.makeText(this, "Title and Description cannot be empty", Toast.LENGTH_SHORT).show()
+            Snackbar.make(binding.root, "Title and Description cannot be empty", Snackbar.LENGTH_SHORT).show()
             return
         }
 
@@ -168,7 +169,7 @@ class TaskActivity : AppCompatActivity(), View.OnClickListener {
         val description = binding.taskInpLay.editText?.text.toString()
 
         if (title.isEmpty() || description.isEmpty()) {
-            Toast.makeText(this, "Title and Description cannot be empty", Toast.LENGTH_SHORT).show()
+            Snackbar.make(binding.root, "Title and Description cannot be empty",Snackbar.LENGTH_SHORT).show()
             return
         }
 

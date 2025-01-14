@@ -20,6 +20,7 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
@@ -342,7 +343,7 @@ class MainActivity : AppCompatActivity() {
             this,
             { _, selectedYear, selectedMonth, selectedDay ->
                 val formattedDate = "${selectedDay}/${selectedMonth + 1}/${selectedYear}"
-                Toast.makeText(this, "Selected Date: $formattedDate", Toast.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, "Selected Date: $formattedDate", Snackbar.LENGTH_SHORT).show()
             },
             year,
             month,
