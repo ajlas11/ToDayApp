@@ -168,34 +168,36 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun fetchJoke() {
-        RetrofitInstance.api.getRandomJoke().enqueue(object : Callback<JokeResponse> {
+        RetrofitInstance.api.getProgrammingJoke().enqueue(object : Callback<JokeResponse> {
             override fun onResponse(call: Call<JokeResponse>, response: Response<JokeResponse>) {
                 if (response.isSuccessful) {
                     val jokeResponse = response.body()
-                    val joke = if (jokeResponse?.joke != null) {
-                        jokeResponse.joke // Single-line joke
+                    val joke = if (jokeResponse?.type == "single") {
+                        jokeResponse.joke
                     } else {
-                        "${jokeResponse?.setup}\n\n${jokeResponse?.delivery}" // Two-part joke
+                        "${jokeResponse?.setup}\n\n${jokeResponse?.delivery}"
                     }
 
-                    // Show the joke in a dialog
+                    // Display the joke in a Material Alert Dialog
                     MaterialAlertDialogBuilder(this@MainActivity)
-                        .setTitle("Here's a Joke for You")
-                        .setMessage(joke)
+                        .setTitle("Programming Joke")
+                        .setMessage(joke ?: "No joke found")
                         .setPositiveButton("Close") { dialog, _ ->
                             dialog.dismiss()
                         }
                         .show()
                 } else {
-                    Toast.makeText(this@MainActivity, "Failed to fetch joke", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(binding.root, "Failed to fetch joke", Snackbar.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<JokeResponse>, t: Throwable) {
-                Toast.makeText(this@MainActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, "Error: ${t.message}", Snackbar.LENGTH_SHORT).show()
             }
         })
     }
+
+
 
     private fun openNewTask() {
         val intent = Intent(this, TaskActivity::class.java)
