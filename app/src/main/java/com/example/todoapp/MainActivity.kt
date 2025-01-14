@@ -26,6 +26,8 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.util.Calendar
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 class MainActivity : AppCompatActivity() {
 
@@ -34,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     private val filteredList = arrayListOf<TodoModel>() // For filtered search results
     private val selectedTasks = mutableListOf<TodoModel>() // List to track selected tasks for deletion
     private var isDeleteMode = false // Flag to toggle delete mode
+    private val taskListFlow = MutableStateFlow<List<TodoModel>>(emptyList())
 
     private val db by lazy {
         AppDatabase.getDatabase(applicationContext)
@@ -59,6 +62,7 @@ class MainActivity : AppCompatActivity() {
 
         setupSortingOptions()
         sortTasksByPriorityAndDate()
+        sortTasksByPriority()
 
         setSupportActionBar(binding.toolbar)
         setupRecyclerView()
@@ -69,6 +73,15 @@ class MainActivity : AppCompatActivity() {
         getTasksForUser(userId)
 
         setupSearchBar()
+
+        lifecycleScope.launch {
+            taskListFlow.collect { tasks ->
+                updateTaskList(tasks)
+            }
+        }
+
+        // Fetch all tasks for the user
+        loadTasks()
 
         // Initialize the ActivityResultLauncher for TaskActivity
         startActivityForResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -103,6 +116,17 @@ class MainActivity : AppCompatActivity() {
         val currentSearchQuery = binding.searchBar.query.toString() // Save the search query
         editor.putString("LastSearchQuery", currentSearchQuery)
         editor.apply()
+    }
+    private fun loadTasks() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val tasks = db.todoDao().getTasksSortedByPriorityAndDate()
+            taskListFlow.value = tasks // Update StateFlow
+        }
+    }
+    private fun updateTaskList(tasks: List<TodoModel>) {
+        filteredList.clear()
+        filteredList.addAll(tasks)
+        binding.todoRv.adapter?.notifyDataSetChanged()
     }
 
     private fun setupSwipeToComplete() {

@@ -7,6 +7,7 @@
     android:background="@android:color/white"
     tools:context=".MainActivity">
 
+    <!-- Toolbar -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -15,6 +16,7 @@
         app:title="ToDay List"
         app:titleTextColor="@color/black" />
 
+    <!-- Subtitle -->
     <TextView
         android:id="@+id/subtitle"
         android:layout_width="wrap_content"
@@ -26,11 +28,23 @@
         android:textSize="16sp"
         android:textColor="@color/black" />
 
+    <!-- Sorting Options -->
+    <Spinner
+        android:id="@+id/sortingOptions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:entries="@array/sorting_options"
+        android:layout_below="@id/subtitle"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp" />
+
+    <!-- Search Bar -->
     <androidx.appcompat.widget.SearchView
         android:id="@+id/searchBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/subtitle"
+        android:layout_below="@id/sortingOptions"
         android:layout_marginTop="8dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
@@ -39,23 +53,24 @@
         android:background="@android:color/white"
         android:visibility="gone" />
 
+    <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/todoRv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/sortingOptions"
-        android:layout_marginTop="16dp"
+        android:layout_below="@id/searchBar"
         android:layout_above="@id/bottom_navigation"
         android:padding="8dp"
         tools:itemCount="3"
         tools:listitem="@layout/item_todo" />
 
+    <!-- Floating Action Button -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/addTaskButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@id/bottom_navigation"
         android:layout_alignParentEnd="true"
+        android:layout_above="@id/bottom_navigation"
         android:layout_marginEnd="15dp"
         android:layout_marginBottom="17dp"
         android:backgroundTint="@color/blue"
@@ -63,6 +78,7 @@
         android:src="@drawable/ic_add_white_24dp"
         app:tint="@android:color/white" />
 
+    <!-- Delete Button -->
     <Button
         android:id="@+id/deleteButton"
         android:layout_width="wrap_content"
@@ -73,6 +89,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="16dp" />
 
+    <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
@@ -83,6 +100,7 @@
         app:itemIconTint="@color/blue"
         app:itemTextColor="@color/blue" />
 
+    <!-- ProgressBar -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
@@ -90,6 +108,7 @@
         android:visibility="gone"
         android:layout_gravity="center" />
 
+    <!-- Joke Card -->
     <androidx.cardview.widget.CardView
         android:id="@+id/jokeCard"
         android:layout_width="match_parent"
@@ -110,15 +129,5 @@
             android:gravity="center"
             android:textColor="@android:color/black" />
     </androidx.cardview.widget.CardView>
-
-    <Spinner
-        android:id="@+id/sortingOptions"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:entries="@array/sorting_options"
-        android:layout_margin="16dp"
-        android:layout_marginTop="8dp"
-    android:layout_below="@id/subtitle" />
-
 
 </RelativeLayout>
