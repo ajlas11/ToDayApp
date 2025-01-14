@@ -64,7 +64,7 @@ interface TodoDao {
 
     @Query("""
     SELECT * FROM TodoModel 
-    WHERE isDeleted = 0 AND isFinished = 0
+    WHERE isDeleted = 0 AND isFinished = 0 AND userId = :userId
     ORDER BY 
         CASE 
             WHEN priority = 'High' THEN 1 
@@ -73,7 +73,8 @@ interface TodoDao {
         END,
         date ASC
 """)
-    suspend fun getTasksSortedByPriorityAndDate(): List<TodoModel>
+    suspend fun getTasksSortedByPriorityAndDate(userId: Int): List<TodoModel>
+
 
 
     @Query("DELETE FROM TodoModel WHERE id = :uid")

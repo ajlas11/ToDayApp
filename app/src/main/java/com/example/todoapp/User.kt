@@ -7,5 +7,7 @@ import androidx.room.PrimaryKey
 data class User(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val username: String,
-    val password: String // In a production app, store hashed passwords
+    val email: String,  // Ensure email field exists
+    val password: String
 )
+

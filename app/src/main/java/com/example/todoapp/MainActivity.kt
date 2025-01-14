@@ -137,10 +137,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadTasks() {
         lifecycleScope.launch(Dispatchers.IO) {
-            val tasks = db.todoDao().getTasksSortedByPriorityAndDate()
+            val tasks = db.todoDao().getTasksSortedByPriorityAndDate(userId) // Pass userId
             taskListFlow.value = tasks // Update StateFlow
         }
     }
+
     private fun updateTaskList(tasks: List<TodoModel>) {
         filteredList.clear()
         filteredList.addAll(tasks)
@@ -290,6 +291,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
 
     override fun onResume() {
         super.onResume()
@@ -499,7 +501,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun sortTasksByPriorityAndDate() {
         lifecycleScope.launch(Dispatchers.IO) {
-            val sortedTasks = db.todoDao().getTasksSortedByPriorityAndDate()
+            val sortedTasks = db.todoDao().getTasksSortedByPriorityAndDate(userId)
             withContext(Dispatchers.Main) {
                 filteredList.clear()
                 filteredList.addAll(sortedTasks)
@@ -507,6 +509,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+    private fun onLoginSuccess(userId: Int) {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.putExtra("USER_ID", userId)
+        startActivity(intent)
+        finish()
+    }
+
 
 
 

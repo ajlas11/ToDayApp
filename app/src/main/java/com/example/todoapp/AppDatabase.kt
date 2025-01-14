@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [TodoModel::class, User::class, Reminder::class],
-    version = 9 // Updated version number
+    version = 10
 )
 abstract class AppDatabase : RoomDatabase() {
 
@@ -128,6 +128,13 @@ abstract class AppDatabase : RoomDatabase() {
                 }
             }
         }
+        private val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // If you've added a new column (e.g., "email"), add it here
+                database.execSQL("ALTER TABLE User ADD COLUMN email TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
 
         fun getDatabase(context: Context): AppDatabase {
             val tempInstance = INSTANCE
@@ -146,8 +153,10 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_5_6,
                         MIGRATION_6_7,
                         MIGRATION_7_8,
-                        MIGRATION_8_9 // Register latest migration
+                        MIGRATION_8_9,
+                        MIGRATION_9_10
                     )
+
                     .build()
 
                 INSTANCE = instance
