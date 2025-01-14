@@ -15,6 +15,10 @@ interface TodoDao {
     @Query("SELECT * FROM TodoModel WHERE isFinished = 0 AND isDeleted = 0")
     suspend fun getTask(): List<TodoModel>
 
+    @Query("SELECT * FROM TodoModel WHERE isFinished = 0 AND userId = :userId")
+    suspend fun getIncompleteTasks(userId: Int): List<TodoModel>
+
+
     @Query("SELECT * FROM TodoModel WHERE userId = :userId AND isFinished = 0 AND isDeleted = 0")
     suspend fun getIncompleteTasksForUser(userId: Int): List<TodoModel>
 
@@ -31,7 +35,12 @@ interface TodoDao {
     suspend fun deleteTask(uid: Long)
 
     @Query("UPDATE TodoModel SET isDeleted = 0 WHERE id = :uid")
+
     suspend fun restoreDeletedTask(uid: Long)
+    @Query("SELECT * FROM TodoModel WHERE isFinished = 0 AND isDeleted = 0 AND userId = :userId")
+    suspend fun getActiveTasks(userId: Int): List<TodoModel>
+
+
 
     @Update
     suspend fun updateTask(todoModel: TodoModel)
@@ -54,17 +63,18 @@ interface TodoDao {
     suspend fun getCompletedTasks(userId: Int): List<TodoModel>
 
     @Query("""
-        SELECT * FROM TodoModel 
-        WHERE isDeleted = 0 
-        ORDER BY 
-            CASE 
-                WHEN priority = 'High' THEN 1 
-                WHEN priority = 'Medium' THEN 2 
-                WHEN priority = 'Low' THEN 3 
-            END,
-            date ASC
-    """)
+    SELECT * FROM TodoModel 
+    WHERE isDeleted = 0 AND isFinished = 0
+    ORDER BY 
+        CASE 
+            WHEN priority = 'High' THEN 1 
+            WHEN priority = 'Medium' THEN 2 
+            WHEN priority = 'Low' THEN 3 
+        END,
+        date ASC
+""")
     suspend fun getTasksSortedByPriorityAndDate(): List<TodoModel>
+
 
     @Query("DELETE FROM TodoModel WHERE id = :uid")
     suspend fun deleteTaskPermanently(uid: Long)

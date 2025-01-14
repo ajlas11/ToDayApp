@@ -122,11 +122,7 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         Log.d("MainActivityLifecycle", "onDestroy called: Activity is being destroyed.")
     }
-    override fun onResume() {
-        super.onResume()
-        Log.d("MainActivityLifecycle", "onResume called: Task list refreshed.")
-        refreshTasks()
-    }
+
 
     override fun onStop() {
         super.onStop()
@@ -164,16 +160,11 @@ class MainActivity : AppCompatActivity() {
                 val task = filteredList[position]
 
                 lifecycleScope.launch(Dispatchers.IO) {
-                    Log.d("MainActivity", "Updating task with ID: ${task.id} to isFinished = true")
-                    // Permanently delete the task from the database
-                    db.todoDao().updateTaskCompletion(task.id.toInt(), true)
-                    Log.d("MainActivity", "Task marked as completed: ${task.title}")
-
+                    db.todoDao().updateTaskCompletion(task.id.toInt(), true) // Mark as completed
                     withContext(Dispatchers.Main) {
-                        // Remove the task from the UI
                         filteredList.removeAt(position)
                         binding.todoRv.adapter?.notifyItemRemoved(position)
-                        Snackbar.make(binding.root, "Task '${task.title}' completed and removed!", Snackbar.LENGTH_LONG).show()
+                        Snackbar.make(binding.root, "Task '${task.title}' marked as completed!", Snackbar.LENGTH_SHORT).show()
                     }
                 }
                 fetchJoke()
@@ -183,6 +174,8 @@ class MainActivity : AppCompatActivity() {
         val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
         itemTouchHelper.attachToRecyclerView(binding.todoRv)
     }
+
+
 
 
 
@@ -285,19 +278,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getTasksForUser(userId: Int) {
-        binding.progressBar.visibility = View.VISIBLE // Show ProgressBar
+        binding.progressBar.visibility = View.VISIBLE
 
         lifecycleScope.launch(Dispatchers.IO) {
-            val tasks = db.todoDao().getIncompleteTasksForUser(userId)
+            val tasks = db.todoDao().getActiveTasks(userId)
             withContext(Dispatchers.Main) {
-                list.clear()
-                list.addAll(tasks)
                 filteredList.clear()
                 filteredList.addAll(tasks)
                 binding.todoRv.adapter?.notifyDataSetChanged()
-                binding.progressBar.visibility = View.GONE // Hide ProgressBar
+                binding.progressBar.visibility = View.GONE
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d("MainActivityLifecycle", "onResume called: Task list refreshed.")
+        getTasksForUser(userId) // Refresh tasks on activity resume
     }
 
 
@@ -510,6 +507,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
 
 
 

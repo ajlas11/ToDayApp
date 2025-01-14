@@ -9,7 +9,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
@@ -29,7 +28,6 @@ class LoginActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-
         // Login button click listener
         loginButton.setOnClickListener {
             val username = usernameField.text.toString()
@@ -46,11 +44,7 @@ class LoginActivity : AppCompatActivity() {
                 val user = db.userDao().getUser(username, password)
                 runOnUiThread {
                     if (user != null) {
-                        // Navigate to MainActivity with the user ID
-                        val intent = Intent(this@LoginActivity, MainActivity::class.java)
-                        intent.putExtra("USER_ID", user.id)
-                        startActivity(intent)
-                        finish()
+                        onLoginSuccess(user.id) // Call onLoginSuccess with the user ID
                     } else {
                         Toast.makeText(this@LoginActivity, "Invalid credentials", Toast.LENGTH_SHORT).show()
                     }
@@ -63,5 +57,13 @@ class LoginActivity : AppCompatActivity() {
             val intent = Intent(this, SignupActivity::class.java)
             startActivity(intent)
         }
+    }
+
+    private fun onLoginSuccess(userId: Int) {
+        // Navigate to MainActivity with the user ID
+        val intent = Intent(this, MainActivity::class.java)
+        intent.putExtra("USER_ID", userId)
+        startActivity(intent)
+        finish()
     }
 }

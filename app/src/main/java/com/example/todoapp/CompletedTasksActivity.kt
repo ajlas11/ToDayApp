@@ -68,13 +68,13 @@ class CompletedTasksActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             val tasks = db.todoDao().getCompletedTasks(userId)
             withContext(Dispatchers.Main) {
-                Log.d("CompletedTasksActivity", "Fetched completed tasks: ${tasks.size}")
                 completedTasksList.clear()
                 completedTasksList.addAll(tasks)
                 todoAdapter.notifyDataSetChanged()
             }
         }
     }
+
 
     private fun deleteTask(task: TodoModel) {
         lifecycleScope.launch(Dispatchers.IO) {
